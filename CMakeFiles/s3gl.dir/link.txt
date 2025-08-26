@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\s3gl.dir/objects.a
+C:\msys64\mingw64\bin\ar.exe qc CMakeFiles\s3gl.dir/objects.a @CMakeFiles\s3gl.dir\objects1.rsp
+C:\msys64\mingw64\bin\c++.exe -g -Wl,--whole-archive CMakeFiles\s3gl.dir/objects.a -Wl,--no-whole-archive -o s3gl.exe -Wl,--out-implib,libs3gl.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\s3gl.dir\linkLibs.rsp
