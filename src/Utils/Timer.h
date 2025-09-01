@@ -11,7 +11,7 @@ namespace Util
 
         void reset();
 
-        float sinceStarted();
+        float sinceStarted() const;
 
         Timer operator=(const Timer& other);
 

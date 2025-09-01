@@ -13,29 +13,28 @@
 #include <cmath>
 #include <chrono>
 // opengl
-#include <GL/glew.h>
-#include <glfw/glfw3.h>
-// gl maths library
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-#include <glm/gtx/vector_angle.hpp>
-// OpenAl
+
+// nGL libraries
+#define GLAD_GL_IMPLEMENTATION
+#ifndef __gl_h_
+#include <glad/glad.h>
+#endif
+#include <GLFW/glfw3.h>
+// audio
 #include <AL/al.h>
 #include <AL/alc.h>
-// the holy grail?
+// other stuff
+#include <nlohmann/json.hpp>
+//#include <assimp/Importer.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-// stb
-#include <stb/stb_image.h>
-// json parsing
-#include <nlohmann/json.hpp>
+// windows specific
+#include <windows.h>
+#include <commdlg.h> // For OPENFILENAME structure
 // src files
-#include "../Utils/Timer.h"
-#include "../Utils/Timer.h"
 #include "../Utils/Timer.h"
 
 namespace App 
@@ -43,11 +42,17 @@ namespace App
     class Application
     {
     public:
-        void start();
+		Application();
         void run();
         void shutdown();
 
     private:
+        void ImGuiPreRender();
+        void ImGuiRender();
+        void getImGuiStyle();
+        void OpenGlPreRender();
+        void OpenGlRender();
         GLFWwindow* m_window;
+        ImFont* m_customFont;
     };
 }

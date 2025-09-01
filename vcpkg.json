@@ -1,0 +1,21 @@
+{
+  "name": "s3glr",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "glad",
+    "glfw3",
+    {
+      "name": "imgui",
+      "features": [
+        "opengl3-binding",
+        "glfw-binding"
+      ]
+    },
+    "openal-soft",
+    "glm",
+    "nlohmann-json",
+    "stb",
+    "assimp"
+  ],
+  "builtin-baseline": "8394d2150d8a7774b2fe869bec36ca7832b2f50e"
+}
