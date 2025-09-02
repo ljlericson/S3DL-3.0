@@ -1,7 +1,6 @@
 #pragma once
-#ifndef __gl_h_
+#include <vector>
 #include <glad/glad.h>
-#endif
 
 namespace Render
 {
@@ -11,7 +10,7 @@ namespace Render
         GLuint id;
 
         EBO();
-        EBO(GLuint* indices, GLsizeiptr size);
+        EBO(std::vector<GLuint> indices, GLsizeiptr size);
 		~EBO();
 
         void bind() const;

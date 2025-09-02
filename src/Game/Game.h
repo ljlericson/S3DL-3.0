@@ -13,8 +13,6 @@
 #include <cmath>
 #include <chrono>
 // opengl
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
 
 // nGL libraries
 #define GLAD_GL_IMPLEMENTATION
@@ -36,6 +34,8 @@
 #include <commdlg.h> // For OPENFILENAME structure
 // src files
 #include "../Utils/Timer.h"
+#include "../RenderPipeline/Model.h"
+#include "../RenderPipeline/camera.h"
 
 namespace App 
 {
@@ -54,5 +54,12 @@ namespace App
         void OpenGlRender();
         GLFWwindow* m_window;
         ImFont* m_customFont;
+
+        Render::Camera* m_camera = nullptr;
+		Render::Model* m_model = nullptr;
+		Render::Shader* m_shader = nullptr;
+
+        bool m_getNewFile = false;
+        std::string m_selectedFile;
     };
 }

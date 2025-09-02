@@ -131,6 +131,8 @@ void App::Application::ImGuiPreRender()
 				if (GetOpenFileName(&ofn) == TRUE)
 				{
 					std::cout << "Selected file: " << ofn.lpstrFile << "\n";
+					m_selectedFile = std::filesystem::relative(ofn.lpstrFile).string();
+					m_getNewFile = true;
 				}
 				else
 				{
@@ -188,7 +190,7 @@ void App::Application::OpenGlPreRender()
 
 void App::Application::OpenGlRender()
 {
-
+	m_model->Draw(*m_shader, *m_camera);
 }
 
 App::Application::Application()
@@ -209,12 +211,26 @@ App::Application::Application()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	// wanting to keep initialsation code explicit
 	m_window = glfwCreateWindow(1280, 720, "s3gl 3.0", NULL, NULL);
 	glfwMakeContextCurrent(m_window);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cerr << "GLEW failed to init, error: " << glGetError() << '\n';
 	}
+
+	glEnable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);       // Enable face culling
+	glCullFace(GL_BACK);          // Don't draw back faces
+	glFrontFace(GL_CCW);          // Default winding is counter-clockwise
+	glViewport(0, 0, 1280, 720);
+	glfwSwapInterval(0);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	stbi_set_flip_vertically_on_load(true);
+
+
+	// imgui init
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -222,20 +238,32 @@ App::Application::Application()
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410");
-	std::cout << std::filesystem::current_path() << std::endl;
-	m_customFont = io.Fonts->AddFontFromFileTTF("assets/fonts/font.ttf", 16.0f);
+	m_customFont = io.Fonts->AddFontFromFileTTF("assets/fonts/western.ttf", 16.0f);
+
+	m_camera = new Render::Camera(glm::vec3(0.0f, 0.0f, 0.0f));
+	m_shader = new Render::Shader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
+	m_shader->build();
+	m_shader->attach();
+	m_model = new Render::Model("assets/obj/terrain.fbx");
 }
 
 void App::Application::run()
 {
     while(!glfwWindowShouldClose(m_window))
     {
+		if (m_getNewFile)
+		{
+			delete m_model;
+			m_model = new Render::Model(m_selectedFile);
+			m_getNewFile = false;
+		}
 		// opengl pre render
 		OpenGlPreRender();
 		// imgui pre render, i.e new frame
 		ImGuiPreRender();
 		// opengl render
 		OpenGlRender();
+		m_camera->inputs(m_window, 0);
 		// imgui render
 		ImGuiRender();
         // swap buffers 

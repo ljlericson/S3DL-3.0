@@ -11,7 +11,14 @@ Render::Texture::Texture(const char* fpath, GLuint texUnit, GLuint target)
         height,
         numColChan;
     // texture bytes
-    uint8_t* bytes = stbi_load(fpath, &width, &height, &numColChan, 0);
+    std::filesystem::path normPath = std::filesystem::path(fpath).lexically_normal();
+    std::string finalPath = normPath.string();
+
+    if (!std::filesystem::exists(normPath)) {
+        std::cerr << "[ERROR]: File does not exist at: " << finalPath << "\n";
+    }
+
+    uint8_t* bytes = stbi_load(finalPath.c_str(), &width, &height, &numColChan, 0);
     if(!bytes)
     {
         std::cout << "[ERROR]: Could not load texture image \"" << fpath << "\", error: " << stbi_failure_reason() << "\n";
@@ -32,6 +39,56 @@ Render::Texture::Texture(const char* fpath, GLuint texUnit, GLuint target)
 		// unbind texture after loading
 		glBindTexture(m_target, 0);
     }
+}
+
+Render::Texture::Texture(aiTexture* tex, GLuint texUnit, const std::string& texSrc)
+    : m_texUnit(texUnit), m_target(GL_TEXTURE_2D), m_id(0)
+{
+    if (!tex) {
+        std::cout << "[ERROR]: Null embedded texture pointer\n";
+        return;
+    }
+
+    glGenTextures(1, &m_id);
+    glActiveTexture(GL_TEXTURE0 + m_texUnit);
+    glBindTexture(m_target, m_id);
+
+    int width = 0, height = 0, numColChan = 0;
+    unsigned char* bytes = nullptr;
+
+    if (tex->mHeight == 0) {
+        // Compressed format (embedded as a blob, e.g. PNG/JPG)
+        bytes = stbi_load_from_memory(
+            reinterpret_cast<unsigned char*>(tex->pcData),
+            tex->mWidth,
+            &width, &height, &numColChan, 0
+        );
+    }
+    else {
+        // Raw pixel data (uncompressed)
+        width = tex->mWidth;
+        height = tex->mHeight;
+        numColChan = 4; // aiTexture::pcData stores BGRA
+        bytes = reinterpret_cast<unsigned char*>(tex->pcData);
+    }
+
+    if (!bytes) {
+        std::cout << "[ERROR]: Could not load embedded texture \"" << texSrc
+            << "\", error: " << stbi_failure_reason() << "\n";
+    }
+    else {
+        GLenum format = (numColChan == 4) ? GL_RGBA : GL_RGB;
+
+        glTexImage2D(m_target, 0, format, width, height, 0,
+            format, GL_UNSIGNED_BYTE, bytes);
+        glGenerateMipmap(m_target);
+
+        if (tex->mHeight == 0) {
+            stbi_image_free(bytes); // only free if stb allocated it
+        }
+    }
+
+    glBindTexture(m_target, 0);
 }
 
 void Render::Texture::setParam(GLuint pname, GLuint params)

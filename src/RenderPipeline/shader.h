@@ -3,9 +3,10 @@
 #include <string>
 #include <fstream>
 #include <string_view>
-#ifndef __gl_h_
 #include <glad/glad.h>
-#endif
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 namespace Render
 {
@@ -25,7 +26,9 @@ namespace Render
 
         void unuse() const;
 
-		void setInt(const std::string& name, int value) const;
+		void setUniform(const std::string& name, int value) const;
+
+        void setUniform(const std::string& name, glm::mat4 value) const;
 
         GLuint getID() const;
 

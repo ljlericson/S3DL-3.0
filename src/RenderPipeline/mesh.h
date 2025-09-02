@@ -4,12 +4,14 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "shader.h"
 #include "vao.h"
 #include "vbo.h"
 #include "ebo.h"
 #include "texture.h"
+#include "camera.h"
 
 namespace Render
 {
@@ -20,9 +22,11 @@ namespace Render
 
 		Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, GLuint texUnit, const char* fpathTex);
 
+		Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture texture);
+
 		~Mesh();
 
-		void draw(Shader& shader) const;
+		void draw(Shader& shader, Camera& camera) const;
 	private:
 		GLsizei m_vertexCount, m_indexCount;
 

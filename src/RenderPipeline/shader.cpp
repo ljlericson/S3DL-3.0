@@ -22,7 +22,7 @@ Render::Shader::Shader(std::string_view fpathVert, std::string_view fpathFrag)
 
         std::string lineVert;
         while (std::getline(fileVert, lineVert)) 
-            m_fragSrc += lineVert + "\n";
+            m_vertSrc += lineVert + "\n";
         
         m_init = true; 
     }
@@ -112,6 +112,18 @@ void Render::Shader::attach()
     {
         std::cout << "[ERROR]: Shader has not been inited\n";
     }
+}
+
+void Render::Shader::setUniform(const std::string& name, int value) const
+{
+    if(m_linked && m_init)
+        glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+}
+
+void Render::Shader::setUniform(const std::string& name, glm::mat4 value) const
+{
+    if (m_linked && m_init)
+        glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Render::Shader::use() const

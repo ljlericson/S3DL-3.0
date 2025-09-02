@@ -1,10 +1,12 @@
 #pragma once
 #include <iostream>
+#include <filesystem>
 // external libs
-#ifndef __gl_h_
 #include <glad/glad.h>
-#endif
 #include <stb_image.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace Render
 {
@@ -18,6 +20,7 @@ namespace Render
     public:
         Texture();
         Texture(const char* fpath, GLuint texUnit, GLuint target);
+        Texture(aiTexture*, GLuint texUnit, const std::string& texSrc);
         ~Texture();
 
         void setParam(GLuint pname, GLuint params);
