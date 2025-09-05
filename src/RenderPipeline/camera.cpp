@@ -1,5 +1,6 @@
 #include "camera.h"
 
+
 Render::Camera::Camera(glm::vec3 pos)
 {
     gravity = 2.0f;

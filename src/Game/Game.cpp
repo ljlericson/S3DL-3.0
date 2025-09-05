@@ -234,17 +234,20 @@ App::Application::Application()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	// white burns my eyes
+	// white burns my eye
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410");
 	m_customFont = io.Fonts->AddFontFromFileTTF("assets/fonts/western.ttf", 16.0f);
 
 	m_camera = new Render::Camera(glm::vec3(0.0f, 0.0f, 0.0f));
+	m_camera->fov = 90.0f;
+	m_camera->update_matrix(0.1f, 10000.0f);
+
 	m_shader = new Render::Shader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
 	m_shader->build();
 	m_shader->attach();
-	m_model = new Render::Model("assets/obj/terrain.fbx");
+	m_model = new Render::Model("assets/obj/untitled.fbx");
 }
 
 void App::Application::run()
@@ -257,13 +260,14 @@ void App::Application::run()
 			m_model = new Render::Model(m_selectedFile);
 			m_getNewFile = false;
 		}
+		m_camera->update_matrix(0.1f, 10000.0f);
+		m_camera->inputs(m_window, 0);
 		// opengl pre render
 		OpenGlPreRender();
 		// imgui pre render, i.e new frame
 		ImGuiPreRender();
 		// opengl render
 		OpenGlRender();
-		m_camera->inputs(m_window, 0);
 		// imgui render
 		ImGuiRender();
         // swap buffers 

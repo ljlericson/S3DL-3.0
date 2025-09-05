@@ -16,9 +16,7 @@
 
 // nGL libraries
 #define GLAD_GL_IMPLEMENTATION
-#ifndef __gl_h_
 #include <glad/glad.h>
-#endif
 #include <GLFW/glfw3.h>
 // audio
 #include <AL/al.h>

@@ -45,10 +45,11 @@ Render::Texture::Texture(aiTexture* tex, GLuint texUnit, const std::string& texS
     : m_texUnit(texUnit), m_target(GL_TEXTURE_2D), m_id(0)
 {
     if (!tex) {
-        std::cout << "[ERROR]: Null embedded texture pointer\n";
+        std::cerr << "[ERROR]: Null embedded texture pointer for source \"" << texSrc << "\"\n";
         return;
     }
 
+    // Generate texture object
     glGenTextures(1, &m_id);
     glActiveTexture(GL_TEXTURE0 + m_texUnit);
     glBindTexture(m_target, m_id);
@@ -57,39 +58,50 @@ Render::Texture::Texture(aiTexture* tex, GLuint texUnit, const std::string& texS
     unsigned char* bytes = nullptr;
 
     if (tex->mHeight == 0) {
-        // Compressed format (embedded as a blob, e.g. PNG/JPG)
+        // Case 1: Compressed (e.g. PNG or JPG stored in memory)
         bytes = stbi_load_from_memory(
             reinterpret_cast<unsigned char*>(tex->pcData),
-            tex->mWidth,
+            tex->mWidth, // length in bytes
             &width, &height, &numColChan, 0
         );
-    }
-    else {
-        // Raw pixel data (uncompressed)
-        width = tex->mWidth;
-        height = tex->mHeight;
-        numColChan = 4; // aiTexture::pcData stores BGRA
-        bytes = reinterpret_cast<unsigned char*>(tex->pcData);
-    }
 
-    if (!bytes) {
-        std::cout << "[ERROR]: Could not load embedded texture \"" << texSrc
-            << "\", error: " << stbi_failure_reason() << "\n";
-    }
-    else {
+        if (!bytes) {
+            std::cerr << "[ERROR]: Could not decode embedded compressed texture \""
+                << texSrc << "\", stb error: " << stbi_failure_reason() << "\n";
+            glBindTexture(m_target, 0);
+            return;
+        }
+
         GLenum format = (numColChan == 4) ? GL_RGBA : GL_RGB;
-
         glTexImage2D(m_target, 0, format, width, height, 0,
             format, GL_UNSIGNED_BYTE, bytes);
-        glGenerateMipmap(m_target);
 
-        if (tex->mHeight == 0) {
-            stbi_image_free(bytes); // only free if stb allocated it
-        }
+        stbi_image_free(bytes); // stb allocated memory
     }
+    else {
+        // Case 2: Uncompressed raw data (BGRA format from Assimp)
+        width = tex->mWidth;
+        height = tex->mHeight;
+        numColChan = 4; // Assimp guarantees BGRA for aiTexel
+
+        bytes = reinterpret_cast<unsigned char*>(tex->pcData);
+
+        glTexImage2D(m_target, 0, GL_RGBA, width, height, 0,
+            GL_BGRA, GL_UNSIGNED_BYTE, bytes);
+        // no free: Assimp owns this memory
+    }
+
+    glGenerateMipmap(m_target);
+
+    // Set safe default parameters
+    glTexParameteri(m_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(m_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(m_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glBindTexture(m_target, 0);
 }
+
 
 void Render::Texture::setParam(GLuint pname, GLuint params)
 {
@@ -109,13 +121,13 @@ void Render::Texture::uniform(GLuint shadProgram, const char* uName) const
 {
     glUseProgram(shadProgram);
     GLint loc = glGetUniformLocation(shadProgram, uName);
-    if (loc == -1 && false) // disable this shit because it is annoying af
+    if (loc == -1 && false ) // sometimes disable this error because its annoyings
     {
         std::cerr << "[ERROR]: Texture uniform not found!\n";
     }
     else
     {
-        glUniform1i(loc, m_texUnit);
+        glUniform1i(loc, m_texUnit); // exception here
     }
 }
 
@@ -126,6 +138,7 @@ void Render::Texture::unbind() const
 
 void Render::Texture::_freeTexBuffer()
 {
+    std::cout << "texture deleted\n";
     if(m_id != 0)
         glDeleteTextures(1, &m_id);
 }

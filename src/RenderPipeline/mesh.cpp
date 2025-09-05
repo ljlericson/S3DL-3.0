@@ -2,7 +2,7 @@
 
 Render::Mesh::~Mesh()
 {
-
+    delete m_texture;
 }
 
 // vertData layout: [0] pos(3), [1] normal(3), [2] texcoords(2)
@@ -11,7 +11,7 @@ Render::Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, 
       m_vertexCount ( GLsizei(vertData.size()) / 8 ),
 	  m_indexCount  ( GLsizei(indiData.size()) ),
       m_ebo         { indiData, GLsizeiptr(indiData.size() * sizeof(GLuint)) }, 
-      m_texture     { std::make_unique<Texture>(fpathTex, texUnit, GL_TEXTURE_2D) }
+      m_texture     { new Texture(fpathTex, texUnit, GL_TEXTURE_2D) }
 {
     m_vao.bind();
     VBO vbo{ vertData.data(), GLsizeiptr(vertData.size() * sizeof(float)) };
@@ -25,12 +25,12 @@ Render::Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, 
 }
 
 // vertData layout: [0] pos(3), [1] normal(3), [2] texcoords(2)
-Render::Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture texture)
+Render::Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture* texture)
     : m_pos(0.0f),
     m_vertexCount(GLsizei(vertData.size()) / 8),
     m_indexCount(GLsizei(indiData.size())),
     m_ebo{ indiData, GLsizeiptr(indiData.size() * sizeof(GLuint)) },
-    m_texture{ std::make_unique<Texture>(texture) }
+    m_texture{ texture }
 {
     m_vao.bind();
     VBO vbo{ vertData.data(), GLsizeiptr(vertData.size() * sizeof(float)) };
@@ -61,13 +61,13 @@ void Render::Mesh::draw(Shader& shader, Camera& camera) const
  //   shader.unuse();
     shader.use();
 
-    m_texture->bind();
     m_texture->uniform(shader.getID(), "tex0");
 
     shader.setUniform("model", model);
     camera.matrix(shader, "camMat");
 
     m_vao.bind();
+    m_texture->bind();
     glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
     m_vao.unbind();
 

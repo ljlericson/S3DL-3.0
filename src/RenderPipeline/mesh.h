@@ -22,7 +22,7 @@ namespace Render
 
 		Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, GLuint texUnit, const char* fpathTex);
 
-		Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture texture);
+		Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture* texture);
 
 		~Mesh();
 
@@ -33,6 +33,6 @@ namespace Render
 		glm::vec3 m_pos;
 		VAO m_vao;
 		EBO m_ebo;
-		std::unique_ptr<Texture> m_texture;
+		Texture* m_texture = nullptr;
 	};
 }
