@@ -14,9 +14,7 @@
 #include <glm/gtx/vector_angle.hpp>
 // local
 #include "shader.h"
-
-#define WIDTH 1280
-#define HEIGHT 720
+#include "../Utils/Utils.h"
 
 namespace Render
 {
@@ -25,6 +23,7 @@ namespace Render
     private:
         // jump variables
         bool jump;
+        bool m_focus;
         int jumpTicks;
         bool firstJump;
         float yOriginal;

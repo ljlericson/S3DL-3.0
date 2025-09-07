@@ -41,7 +41,7 @@ Render::Texture::Texture(const char* fpath, GLuint texUnit, GLuint target)
     }
 }
 
-Render::Texture::Texture(aiTexture* tex, GLuint texUnit, const std::string& texSrc)
+Render::Texture::Texture(const aiTexture* tex, GLuint texUnit, const std::string& texSrc)
     : m_texUnit(texUnit), m_target(GL_TEXTURE_2D), m_id(0)
 {
     if (!tex) {
@@ -121,13 +121,13 @@ void Render::Texture::uniform(GLuint shadProgram, const char* uName) const
 {
     glUseProgram(shadProgram);
     GLint loc = glGetUniformLocation(shadProgram, uName);
-    if (loc == -1 && false ) // sometimes disable this error because its annoyings
+    if (loc == -1 && true ) // sometimes disable this error because its annoyings
     {
         std::cerr << "[ERROR]: Texture uniform not found!\n";
     }
     else
     {
-        glUniform1i(loc, m_texUnit); // exception here
+        glUniform1i(loc, m_texUnit);
     }
 }
 
@@ -141,6 +141,11 @@ void Render::Texture::_freeTexBuffer()
     std::cout << "texture deleted\n";
     if(m_id != 0)
         glDeleteTextures(1, &m_id);
+}
+
+bool Render::Texture::isValid() const
+{
+    return m_id != 0;
 }
 
 Render::Texture::~Texture()

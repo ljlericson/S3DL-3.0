@@ -31,6 +31,7 @@
 #include <windows.h>
 #include <commdlg.h> // For OPENFILENAME structure
 // src files
+#include "../Utils/Utils.h"
 #include "../Utils/Timer.h"
 #include "../RenderPipeline/Model.h"
 #include "../RenderPipeline/camera.h"
@@ -54,9 +55,10 @@ namespace App
         ImFont* m_customFont;
 
         Render::Camera* m_camera = nullptr;
-		Render::Model* m_model = nullptr;
+		std::vector<std::unique_ptr<Render::Model>> m_models;
 		Render::Shader* m_shader = nullptr;
 
+        glm::vec3 m_scrColor;
         bool m_getNewFile = false;
         std::string m_selectedFile;
     };

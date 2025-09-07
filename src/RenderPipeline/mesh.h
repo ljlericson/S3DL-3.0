@@ -24,15 +24,16 @@ namespace Render
 
 		Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture* texture);
 
-		~Mesh();
-
 		void draw(Shader& shader, Camera& camera) const;
+
+	public:
+		glm::vec3 m_pos;
+
 	private:
 		GLsizei m_vertexCount, m_indexCount;
 
-		glm::vec3 m_pos;
 		VAO m_vao;
 		EBO m_ebo;
-		Texture* m_texture = nullptr;
+		Texture* m_texture = nullptr; // not owned
 	};
 }

@@ -16,11 +16,12 @@ namespace Render
         GLuint m_id;
         GLuint m_target;
         GLuint m_texUnit;
+		bool m_isLoaded;
         
     public:
         Texture();
         Texture(const char* fpath, GLuint texUnit, GLuint target);
-        Texture(aiTexture*, GLuint texUnit, const std::string& texSrc);
+        Texture(const aiTexture*, GLuint texUnit, const std::string& texSrc);
         ~Texture();
 
         void setParam(GLuint pname, GLuint params);
@@ -30,6 +31,8 @@ namespace Render
         void uniform(GLuint shadProgram, const char* uName) const;
 
 		void unbind() const;
+
+		bool isValid() const;
 
         void _freeTexBuffer();
     };

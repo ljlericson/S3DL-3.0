@@ -1,10 +1,5 @@
 #include "mesh.h"
 
-Render::Mesh::~Mesh()
-{
-    delete m_texture;
-}
-
 // vertData layout: [0] pos(3), [1] normal(3), [2] texcoords(2)
 Render::Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, GLuint texUnit, const char* fpathTex)
     : m_pos         ( 0.0f ), 
@@ -32,7 +27,10 @@ Render::Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, 
     m_ebo{ indiData, GLsizeiptr(indiData.size() * sizeof(GLuint)) },
     m_texture{ texture }
 {
-    m_vao.bind();
+    if(!m_texture) 
+		m_texture = new Texture("assets/no_texture.png", 31, GL_TEXTURE_2D); // default texture at the 31st slot to avoid conflicts
+
+	m_vao.bind(); // poor vbo getting sandwiched between vao and ebo :(
     VBO vbo{ vertData.data(), GLsizeiptr(vertData.size() * sizeof(float)) };
     m_ebo.bind();
 
@@ -48,26 +46,13 @@ void Render::Mesh::draw(Shader& shader, Camera& camera) const
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, m_pos);
 
- //   shader.use();
-	//shader.setUniform("model", model);
- //   m_texture->bind();
- //   // Draw mesh
- //   m_texture->uniform(shader.getID(), "tex0");
-	//camera.matrix(shader, "camMat");
- //   m_vao.bind();
- //   glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
-	//m_texture->unbind();
- //   m_vao.unbind();
- //   shader.unuse();
     shader.use();
-
-    m_texture->uniform(shader.getID(), "tex0");
-
     shader.setUniform("model", model);
     camera.matrix(shader, "camMat");
 
     m_vao.bind();
     m_texture->bind();
+    m_texture->uniform(shader.getID(), "tex0");
     glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
     m_vao.unbind();
 

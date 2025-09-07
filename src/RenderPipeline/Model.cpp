@@ -1,26 +1,38 @@
 ﻿#include "Model.h"
 
 Render::Model::Model(const std::string& path) 
+	: m_pos(0.0f), m_posBefore(0.0f)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
-        aiProcess_CalcTangentSpace |
+        aiProcess_ConvertToLeftHanded |
+        aiProcess_JoinIdenticalVertices |
         aiProcess_Triangulate |
+        aiProcess_FlipUVs |
+        aiProcess_PreTransformVertices |
+        aiProcess_CalcTangentSpace |
         aiProcess_JoinIdenticalVertices |
         aiProcess_SortByPType);
 
-    if (!scene) {
+    if (!scene) 
+    {
         std::cout << "[ERROR]: Loading model failed: " << importer.GetErrorString() << '\n';
         return;
     }
 
+	m_name = std::string(scene->mName.C_Str());
+    if(m_name.empty())
+		m_name = std::filesystem::path(path).stem().string();
+
     std::filesystem::path modelDir = std::filesystem::path(path).parent_path();
 	GLuint numTextures = 0;
-    for (uint32_t i = 0; i < scene->mNumMeshes; i++) {
+    for (uint32_t i = 0; i < scene->mNumMeshes; i++) 
+    {
         std::vector<float>  vertData;
         std::vector<GLuint> indiData;
 
-        for (uint32_t j = 0; j < scene->mMeshes[i]->mNumVertices; j++) {
+        for (uint32_t j = 0; j < scene->mMeshes[i]->mNumVertices; j++) 
+        {
             aiVector3D vert = scene->mMeshes[i]->mVertices[j];
             aiVector3D norm = scene->mMeshes[i]->mNormals[j];
             aiVector3D tex(0.0f, 0.0f, 0.0f);
@@ -50,35 +62,58 @@ Render::Model::Model(const std::string& path)
         Texture* tex = nullptr;
         auto* mat = scene->mMaterials[scene->mMeshes[i]->mMaterialIndex];
 
-        if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-            if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS) {
+        if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) 
+        {
+            if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS) 
+            {
                 std::string texStr = texturePath.C_Str();
 
-                if ((!texStr.empty() && texStr[0] == '*') || true) {
+                if ((!texStr.empty() && texStr[0] == '*') || true) 
+                {
                     // Embedded texture
-                    int texIndex = atoi(texStr.c_str() + 1);
-                    aiTexture* embeddedTex = scene->mTextures[texIndex];
-                    tex = new Texture(embeddedTex, numTextures, texStr);
+                    const aiTexture* embeddedTex = scene->GetEmbeddedTexture(texStr.c_str());
+					std::cout << "[INFO]: Loading embedded texture: " << texStr 
+						    << "\n        For mesh: " << scene->mMeshes[i]->mName.C_Str() << '\n';
+                    tex = m_textureManager.newTexture(embeddedTex, texStr);
                 }
-                else {
+                else 
+                {
                     // External texture
                     std::filesystem::path fullPath = modelDir / texStr;
-                    tex = new Texture(fullPath.string().c_str(), numTextures, GL_TEXTURE_2D);
-                }
-
-                if (tex) {
-                    numTextures++;
+                    tex = m_textureManager.newTexture(fullPath.string().c_str(), GL_TEXTURE_2D);
                 }
             }
         }
 
+        scene->mMeshes[i]->HasPositions();
         // pass empty string if no texture
         m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, tex));
+        std::cout << "------  Loaded mesh: " << scene->mMeshes[i]->mName.C_Str() << '\n'
+                  << "        with texture path: " << tex << "\n\n";
+		m_localID = sm_numModels;
+        sm_numModels++;
     }
 }
 
 void Render::Model::Draw(Shader& shader, Camera& camera) 
 {
-	for(const auto& mesh : m_childMeshes)
-		mesh->draw(shader, camera);
+	for(const auto& mesh : m_childMeshes) 
+    {
+		if (m_pos != m_posBefore)
+            mesh->m_pos += (this->m_pos - this->m_posBefore);
+
+        mesh->draw(shader, camera);
+    }
+	m_posBefore = m_pos;
+}
+
+size_t Render::Model::getLocalID() const 
+{
+    return m_localID;
+}
+
+
+GLuint Render::Model::getNumTextures() const 
+{
+	return m_textureManager.getNumTextures();
 }

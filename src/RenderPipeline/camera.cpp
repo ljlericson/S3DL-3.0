@@ -2,6 +2,7 @@
 
 
 Render::Camera::Camera(glm::vec3 pos)
+	: fov(90.0f), yOriginal(0.0f)
 {
     gravity = 2.0f;
     grounded = false;
@@ -24,7 +25,7 @@ void Render::Camera::update_matrix(float fnear, float ffar)
     glm::mat4 proj = glm::mat4(1.0f);
 
     view = glm::lookAt(pos, pos + orientation, up);
-    proj = glm::perspective(glm::radians(fov), (float)(WIDTH / HEIGHT), fnear, ffar);
+    proj = glm::perspective(glm::radians(fov), 1.0f, fnear, ffar);
     cam_mat = proj * view;
 }
 
@@ -35,7 +36,7 @@ void Render::Camera::matrix(Shader& shad, const char* uniform)
 
 
 // not my code!!!!
-void Render::Camera::inputs(GLFWwindow* window, float height_data)
+void Render::Camera::inputs(GLFWwindow* window, float heightData)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
@@ -68,14 +69,23 @@ void Render::Camera::inputs(GLFWwindow* window, float height_data)
     {
         speed *= 1.6f;
     }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        m_focus = true;
+    }
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && m_focus)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        m_focus = false;
+	}
     
     // handles jumping (the one bit of code i made)
     // Handles key inputs
     if(jump && grounded)
     {
-        if(pos.y <= height_data && !firstJump)
+        if(pos.y <= heightData && !firstJump)
         {
-            pos.y = height_data;
+            pos.y = heightData;
             jump = false;
             jumpTicks = 0;
         }
@@ -88,10 +98,10 @@ void Render::Camera::inputs(GLFWwindow* window, float height_data)
     }
     else if(grounded)
     {
-        pos.y = height_data;
+        pos.y = heightData;
     }
 
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+    if (m_focus)
 	{
 		// Hides mouse cursor
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -99,7 +109,7 @@ void Render::Camera::inputs(GLFWwindow* window, float height_data)
 		// Prevents camera from jumping on the first click
 		if (firstClick)
 		{
-			glfwSetCursorPos(window, (WIDTH / 2), (HEIGHT / 2));
+			glfwSetCursorPos(window, (Util::width / 2), (Util::height / 2));
 			firstClick = false;
 		}
 
@@ -111,8 +121,8 @@ void Render::Camera::inputs(GLFWwindow* window, float height_data)
 
 		// Normalizes and shifts the coordinates of the cursor such that they begin in the middle of the screen
 		// and then "transforms" them into degrees 
-		float rotX = sens * 5.0f * (float)(mouseY - (HEIGHT / 2)) / HEIGHT;
-		float rotY = sens * 5.0f * (float)(mouseX - (WIDTH / 2)) / WIDTH;
+		float rotX = sens * 5.0f * (float)(mouseY - (Util::height / 2)) / Util::height;
+		float rotY = sens * 5.0f * (float)(mouseX - (Util::width / 2)) / Util::width;
 
 		// Calculates upcoming vertical change in the Orientation
 		glm::vec3 newOrientation = glm::rotate(orientation, glm::radians(-rotX), glm::normalize(glm::cross(orientation, up)));
@@ -127,7 +137,7 @@ void Render::Camera::inputs(GLFWwindow* window, float height_data)
 		orientation = glm::rotate(orientation, glm::radians(-rotY), up);
 
 		// Sets mouse cursor to the middle of the screen so that it doesn't end up roaming around
-		glfwSetCursorPos(window, (WIDTH / 2), (HEIGHT / 2));
+		glfwSetCursorPos(window, (Util::width / 2), (Util::height / 2));
 	}
 	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
 	{
