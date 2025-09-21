@@ -265,6 +265,7 @@ void App::Application::ImGuiRender()
 void App::Application::OpenGlPreRender()
 {
 	Util::updateWindowSize(m_window);
+	//m_scrFBO->startPreRender();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(m_scrColor.x, m_scrColor.y, m_scrColor.z, 1.0f);
 }
@@ -274,6 +275,11 @@ void App::Application::OpenGlRender()
 {
 	for (auto& m_model : m_models)
 		m_model->Draw(*m_shader, *m_camera);
+}
+
+void App::Application::OpenGlPostRender()
+{
+	//m_scrFBO->postRender();
 }
 
 App::Application::Application()
@@ -291,13 +297,18 @@ App::Application::Application()
 			std::cerr << "No error description available.\n";
 	}
 	// provide glfw with relevent info
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// wanting to keep initialsation code explicit
 	m_window = glfwCreateWindow(1280, 720, "s3gl 3.0", NULL, NULL);
 	glfwMakeContextCurrent(m_window);
+	if (glfwGetCurrentContext() != m_window) 
+	{
+		std::cerr << "OpenGL context is not current before ImGui device object creation.\n";
+	}
+
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cerr << "GLEW failed to init, error: " << glGetError() << '\n';
@@ -318,19 +329,26 @@ App::Application::Application()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	// white burns my eye
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-	ImGui_ImplOpenGL3_Init("#version 410");
+	if (!ImGui_ImplOpenGL3_Init("#version 410")) 
+	{
+		std::cerr << "ImGui OpenGL3 backend failed to initialize.\n";
+		throw std::runtime_error("ImGui OpenGL3 backend failed to initialize.");
+	}
 	//m_customFont = io.Fonts->AddFontFromFileTTF("assets/fonts/western.ttf", 16.0f);
 
-	m_camera = new Render::Camera(glm::vec3(0.0f, 0.0f, 0.0f));
+	m_camera = new Core::OpenGlBackend::Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 	m_camera->fov = 90.0f;
 	m_camera->update_matrix(0.1f, 10000.0f);
 
-	m_shader = new Render::Shader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
+	m_shader = new Core::OpenGlBackend::Shader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
 	m_shader->build();
 	m_shader->attach();
+
+	//m_scrFBO = new Render::FBO{ "assets/shaders/frameBufferVert.glsl", "assets/shaders/frameBufferFrag.glsl" };
+	//if (!m_scrFBO)
+	//	throw;
 }
 
 void App::Application::run()
@@ -339,18 +357,21 @@ void App::Application::run()
     {
 		if (m_getNewFile)
 		{
-			m_models.push_back(std::make_unique<Render::Model>(m_selectedFile));
+			m_models.push_back(std::make_unique<Core::OpenGlBackend::Model>(m_selectedFile));
 			m_getNewFile = false;
 		}
 		m_camera->update_matrix(0.1f, 1000000.0f);
 		m_camera->inputs(m_window, 0);
-		// opengl pre render
+
+
 		OpenGlPreRender();
-		// imgui pre render, i.e new frame
-		ImGuiPreRender();
-		// opengl render
+
 		OpenGlRender();
-		// imgui render
+
+		OpenGlPostRender();
+
+		ImGuiPreRender();
+
 		ImGuiRender();
         // swap buffers 
         glfwSwapBuffers(m_window);
@@ -359,7 +380,18 @@ void App::Application::run()
     }
 }
 
-void App::Application::shutdown()
+App::Application::~Application()
 {
+	if(m_camera)
+		delete m_camera;
+	if(m_shader)
+		delete m_shader;
+	if (m_scrFBO)
+		delete m_scrFBO;
+
+	glfwTerminate();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui_ImplOpenGL3_Shutdown();
+
 	std::cout << "All good things must come to an end" << /* finally flush the stream */ std::endl;
 }

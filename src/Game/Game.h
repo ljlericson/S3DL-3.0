@@ -1,29 +1,15 @@
 #pragma once
 // std libraries
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <functional>
-#include <string_view>
+#include <filesystem>
 #include <memory>
 #include <vector>
-#include <map>
 #include <array>
-#include <limits>
-#include <cmath>
-#include <chrono>
-// opengl
-
 // nGL libraries
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-// audio
-#include <AL/al.h>
-#include <AL/alc.h>
-// other stuff
-#include <nlohmann/json.hpp>
-//#include <assimp/Importer.hpp>
+// imgui
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -33,8 +19,13 @@
 // src files
 #include "../Utils/Utils.h"
 #include "../Utils/Timer.h"
-#include "../RenderPipeline/Model.h"
-#include "../RenderPipeline/camera.h"
+#include "../Core/OpenGlBackend/Model.h"
+#include "../Core/OpenGlBackend/camera.h"
+#include "../Core/OpenGlBackend/Fbo.h"
+#include "../Core/Audio/Listener.h"
+#include "../Core/Audio/Source.h"
+
+
 
 namespace App 
 {
@@ -43,7 +34,7 @@ namespace App
     public:
 		Application();
         void run();
-        void shutdown();
+        ~Application();
 
     private:
         void ImGuiPreRender();
@@ -51,12 +42,14 @@ namespace App
         void getImGuiStyle();
         void OpenGlPreRender();
         void OpenGlRender();
+        void OpenGlPostRender();
         GLFWwindow* m_window;
         ImFont* m_customFont;
 
-        Render::Camera* m_camera = nullptr;
-		std::vector<std::unique_ptr<Render::Model>> m_models;
-		Render::Shader* m_shader = nullptr;
+        Core::OpenGlBackend::Camera* m_camera = nullptr;
+        Core::OpenGlBackend::Shader* m_shader = nullptr;
+        Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
+		std::vector<std::unique_ptr<Core::OpenGlBackend::Model>> m_models;
 
         glm::vec3 m_scrColor;
         bool m_getNewFile = false;

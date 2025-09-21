@@ -11,6 +11,7 @@
         "glfw-binding"
       ]
     },
+    "drlibs",
     "openal-soft",
     "glm",
     "nlohmann-json",
