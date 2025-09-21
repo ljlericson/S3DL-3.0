@@ -18,7 +18,6 @@ namespace Core
             GLuint m_id;
             GLuint m_target;
             GLuint m_texUnit;
-            bool m_isLoaded;
 
         public:
             Texture();
@@ -36,7 +35,9 @@ namespace Core
 
             bool isValid() const;
 
-            void _freeTexBuffer();
+            // underscore before to ensure it is at the bottom
+            // of the member list
+            void _delte();
 
             GLuint getID() const;
         };

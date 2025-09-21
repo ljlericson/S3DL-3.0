@@ -16,24 +16,23 @@ namespace Core
 			sm_numActiveTexManagers--;
 			if (sm_numActiveTexManagers == 0)
 			{
-				std::cout << "No texture managers exist, deleting smp_invalidTex\n";
-				delete smp_invalidTex;
+				sm_numTextures = 0;
 			}
 		}
 
-		Texture* TextureManager::newTexture(const aiTexture* texture, const std::string& texStr)
+		std::shared_ptr<Texture> TextureManager::newTexture(const aiTexture* texture, const std::string& texStr)
 		{
 			// Check if texture already exists
 			if (m_textures.find(texStr) != m_textures.end())
 			{
 				std::cout << "-----   Texture already exists...\n";
-				return m_textures.at(texStr).get();
+				return m_textures.at(texStr);
 			}
 
 			// Create new texture
 			std::cout << "+++++   Creating new texture...\n";
 
-			auto tex = std::make_unique<Texture>(texture, sm_numTextures + 1, texStr);
+			auto tex = std::make_shared<Texture>(texture, sm_numTextures + 1, texStr);
 			if (!tex->isValid())
 			{
 				return this->getInvalidTex();
@@ -44,16 +43,16 @@ namespace Core
 				m_textures[texStr] = std::move(tex);
 			}
 
-			return m_textures.at(texStr).get();
+			return m_textures.at(texStr);
 		}
 
-		Texture* TextureManager::newTexture(const std::string& fpath, GLuint target)
+		std::shared_ptr<Texture> TextureManager::newTexture(const std::string& fpath, GLuint target)
 		{
 			// Check if texture already exists
 			if (m_textures.find(fpath) != m_textures.end())
 			{
 				std::cout << "-----   Texture already exists...\n";
-				return m_textures.at(fpath).get();
+				return m_textures.at(fpath);
 			}
 			// Create new texture
 			std::cout << "+++++   Creating new texture...\n";
@@ -76,15 +75,15 @@ namespace Core
 				m_textures.insert({ fpath, std::move(tex) });
 			}
 
-			return m_textures.at(fpath).get();
+			return m_textures.at(fpath);
 		}
 
-		Texture* TextureManager::getInvalidTex() const
+		std::shared_ptr<Texture> TextureManager::getInvalidTex() const
 		{
 			if (!smp_invalidTex)
 			{
 				sm_numTextures++;
-				smp_invalidTex = new Texture("assets/no_texture.png", sm_numTextures, GL_TEXTURE_2D);
+				smp_invalidTex = std::make_shared<Texture>("assets/no_texture.png", sm_numTextures, GL_TEXTURE_2D);
 			}
 			return smp_invalidTex;
 		}

@@ -5,8 +5,7 @@ namespace Core
     namespace OpenGlBackend
     {
         Texture::Texture()
-            : m_id(0), m_texUnit(-1), m_target(0) {
-        }
+            : m_id(0), m_texUnit(INT_MAX), m_target(0) {}
 
         Texture::Texture(const char* fpath, GLuint texUnit, GLuint target)
             : m_texUnit(texUnit), m_target(target), m_id(0)
@@ -142,7 +141,7 @@ namespace Core
             glBindTexture(m_target, 0);
         }
 
-        void Texture::_freeTexBuffer()
+        void Texture::_delte()
         {
             std::cout << "texture deleted\n";
             if (m_id != 0)
@@ -161,7 +160,7 @@ namespace Core
 
         Texture::~Texture()
         {
-            _freeTexBuffer();
+            _delte();
         }
     }
 }

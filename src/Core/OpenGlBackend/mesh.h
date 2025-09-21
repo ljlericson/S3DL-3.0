@@ -24,11 +24,11 @@ namespace Core
 
 			Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, GLuint texUnit, const char* fpathTex);
 
-			Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture* texture);
+			Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, std::shared_ptr<Texture> texture);
 
 			~Mesh();
 
-			void draw(Shader& shader, Camera& camera) const;
+			void draw(Shader* shader, Camera* camera) const;
 
 		public:
 			glm::vec3 m_pos;
@@ -39,8 +39,7 @@ namespace Core
 			VAO m_vao;
 			EBO m_ebo;
 			VBO m_vbo;
-			bool m_texOwned; // avoid memory leak
-			Texture* m_texture = nullptr;
+			std::shared_ptr<Texture> m_texture = nullptr;
 		};
 	}
 }

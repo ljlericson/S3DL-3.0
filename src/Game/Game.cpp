@@ -102,7 +102,7 @@ void App::Application::ImGuiPreRender()
 	const char* items[] = { "Option 1", "Option 2", "Option 3" };
 
 	ImGui::Begin("Hello", &show_demo_window, ImGuiWindowFlags_MenuBar);
-	getImGuiStyle();
+	//getImGuiStyle();
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
@@ -274,7 +274,7 @@ void App::Application::OpenGlPreRender()
 void App::Application::OpenGlRender()
 {
 	for (auto& m_model : m_models)
-		m_model->Draw(*m_shader, *m_camera);
+		m_model->Draw(m_shader, m_camera);
 }
 
 void App::Application::OpenGlPostRender()

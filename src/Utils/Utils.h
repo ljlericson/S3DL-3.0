@@ -11,7 +11,7 @@
 namespace Util
 { 
 	extern int width, height;
-	extern glm::vec2 viewportPos;
+	extern glm::ivec2 viewportPos;
 
 	void updateWindowSize(GLFWwindow* window);
 	

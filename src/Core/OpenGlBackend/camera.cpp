@@ -29,13 +29,13 @@ namespace Core
             glm::mat4 proj = glm::mat4(1.0f);
 
             view = glm::lookAt(pos, pos + orientation, up);
-            proj = glm::perspective(glm::radians(fov), 1.0f, fnear, ffar);
+            proj = glm::perspectiveFov(glm::radians(fov), (float)Util::width, (float)Util::height, fnear, ffar);
             cam_mat = proj * view;
         }
 
-        void Camera::matrix(Shader& shad, const char* uniform)
+        void Camera::matrix(Shader* shad, const char* uniform)
         {
-            glUniformMatrix4fv(glGetUniformLocation(shad.getID(), uniform), 1, GL_FALSE, glm::value_ptr(cam_mat));
+            glUniformMatrix4fv(glGetUniformLocation(shad->getID(), uniform), 1, GL_FALSE, glm::value_ptr(cam_mat));
         }
 
 

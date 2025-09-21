@@ -11,8 +11,7 @@ namespace Core
             m_indexCount(GLsizei(indiData.size())),
             m_ebo{ indiData, GLsizeiptr(indiData.size() * sizeof(GLuint)) },
             m_vbo{ vertData.data(), GLsizeiptr(vertData.size() * sizeof(float)) },
-            m_texture{ new Texture(fpathTex, texUnit, GL_TEXTURE_2D) },
-            m_texOwned(true)
+            m_texture{ std::make_shared<Texture>(fpathTex, texUnit, GL_TEXTURE_2D) }
         {
             m_vao.bind();
             m_ebo.bind();
@@ -24,14 +23,13 @@ namespace Core
         }
 
         // vertData layout: [0] pos(3), [1] normal(3), [2] texcoords(2)
-        Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, Texture* texture)
+        Mesh::Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, std::shared_ptr<Texture> texture)
             : m_pos(0.0f),
             m_vertexCount(GLsizei(vertData.size()) / 8),
             m_indexCount(GLsizei(indiData.size())),
             m_ebo{ indiData, GLsizeiptr(indiData.size() * sizeof(GLuint)) },
             m_vbo{ vertData.data(), GLsizeiptr(vertData.size() * sizeof(float)) },
-            m_texture{ texture },
-            m_texOwned(false)
+            m_texture{ texture }
         {
             m_vao.bind(); // poor vbo getting sandwiched between vao and ebo :(
             m_ebo.bind();
@@ -45,28 +43,27 @@ namespace Core
 
         Mesh::~Mesh()
         {
-            if (m_texOwned)
-                delete m_texture;
+            
         }
 
-        void Mesh::draw(Shader& shader, Camera& camera) const
+        void Mesh::draw(Shader* shader, Camera* camera) const
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, m_pos);
 
-            shader.use();
-            shader.setUniform("model", model);
-            camera.matrix(shader, "camMat");
+            shader->use();
+            shader->setUniform("model", model);
+            camera->matrix(shader, "camMat");
 
             m_vao.bind();
             m_ebo.bind();
             m_texture->bind();
-            m_texture->uniform(shader.getID(), "tex0");
+            m_texture->uniform(shader->getID(), "tex0");
             glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
             m_texture->unbind();
             m_ebo.unbind();
             m_vao.unbind();
-            shader.unuse();
+            shader->unuse();
 
             if (Util::checkGlErrors())
                 std::cout << "MESH::DRAW1: " << Util::getGlErrAfterCheck();

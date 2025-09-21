@@ -53,7 +53,7 @@ namespace Core
 
             void update_matrix(float fnear, float ffar);
 
-            void matrix(Shader& shader, const char* uniform);
+            void matrix(Shader* shader, const char* uniform);
 
             std::array<float, 6> getOrientation();
 

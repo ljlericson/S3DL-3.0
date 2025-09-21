@@ -72,7 +72,7 @@ namespace Core
 
                 // material / texture
                 aiString texturePath;
-                Texture* tex = nullptr;
+                std::shared_ptr<Texture> tex = nullptr;
                 auto* mat = scene->mMaterials[scene->mMeshes[i]->mMaterialIndex];
 
                 if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
@@ -113,7 +113,7 @@ namespace Core
             sm_numModels++;
         }
 
-        void Model::Draw(Shader& shader, Camera& camera)
+        void Model::Draw(Shader* shader, Camera* camera)
         {
             for (const auto& mesh : m_childMeshes)
             {
