@@ -2,7 +2,7 @@
 
 namespace Core
 {
-	namespace OpenGlBackend
+	namespace Manager
 	{
 		TextureManager::TextureManager()
 		{
@@ -20,7 +20,7 @@ namespace Core
 			}
 		}
 
-		std::shared_ptr<Texture> TextureManager::newTexture(const aiTexture* texture, const std::string& texStr)
+		std::shared_ptr<OpenGlBackend::Texture> TextureManager::newTexture(const aiTexture* texture, const std::string& texStr)
 		{
 			// Check if texture already exists
 			if (m_textures.find(texStr) != m_textures.end())
@@ -32,7 +32,7 @@ namespace Core
 			// Create new texture
 			std::cout << "+++++   Creating new texture...\n";
 
-			auto tex = std::make_shared<Texture>(texture, sm_numTextures + 1, texStr);
+			auto tex = std::make_shared<OpenGlBackend::Texture>(texture, sm_numTextures + 1, texStr);
 			if (!tex->isValid())
 			{
 				return this->getInvalidTex();
@@ -46,7 +46,7 @@ namespace Core
 			return m_textures.at(texStr);
 		}
 
-		std::shared_ptr<Texture> TextureManager::newTexture(const std::string& fpath, GLuint target)
+		std::shared_ptr<OpenGlBackend::Texture> TextureManager::newTexture(const std::string& fpath, GLuint target)
 		{
 			// Check if texture already exists
 			if (m_textures.find(fpath) != m_textures.end())
@@ -58,7 +58,7 @@ namespace Core
 			std::cout << "+++++   Creating new texture...\n";
 
 			// create texture from params passed
-			auto tex = std::make_unique<Texture>(fpath.c_str(), sm_numTextures + 1, target);
+			auto tex = std::make_unique<OpenGlBackend::Texture>(fpath.c_str(), sm_numTextures + 1, target);
 			// check texture valid
 			if (!m_textures[fpath]->isValid())
 			{
@@ -78,12 +78,12 @@ namespace Core
 			return m_textures.at(fpath);
 		}
 
-		std::shared_ptr<Texture> TextureManager::getInvalidTex() const
+		std::shared_ptr<OpenGlBackend::Texture> TextureManager::getInvalidTex() const
 		{
 			if (!smp_invalidTex)
 			{
 				sm_numTextures++;
-				smp_invalidTex = std::make_shared<Texture>("assets/no_texture.png", sm_numTextures, GL_TEXTURE_2D);
+				smp_invalidTex = std::make_shared<OpenGlBackend::Texture>("assets/no_texture.png", sm_numTextures, GL_TEXTURE_2D);
 			}
 			return smp_invalidTex;
 		}

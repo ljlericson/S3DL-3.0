@@ -5,22 +5,52 @@ namespace Core
 {
     namespace Audio
     {
-        Source::Source(glm::vec3 pos, const char* audioFpath)
+        Source::Source(Manager::AssetManager* assetManager, const char* fpath, glm::vec3 pos)
+            : pos(pos)
         {
-            drwav_int16* pcmData;
-            uint32_t channels, sampleRate;
-            drwav_uint64 totalPCMframeCount;
-            pcmData = drwav_open_file_and_read_pcm_frames_s16(audioFpath, &channels, &sampleRate, &totalPCMframeCount, nullptr);
-            if (!pcmData)
-                std::print("ERROR: Could not load pcm audio data: {}", audioFpath);
+            m_bufferID = assetManager->getAudioBufferManager()->newBuffer(fpath);
 
-            // loaded our pcm data now we can use it with OpenAl
-            alGenBuffers(1, &m_bufferID);
-            alBufferData(m_bufferID,
-                channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
-                pcmData,
-                ALsizei(totalPCMframeCount * channels * sizeof(drwav_int16)),
-                sampleRate);
+            if(m_bufferID != UINT_MAX)
+            {
+                alGenSources(1, &m_id);
+                alSourcei(m_id, AL_BUFFER, m_bufferID);
+                alSource3f(m_id, AL_POSITION, this->pos.x, this->pos.y, this->pos.z);
+                // just hardcoding for now
+                alSourcef(m_id, AL_GAIN, 1.0f);
+                alSource3f(m_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
+                alSource3f(m_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+                alSourcei(m_id, AL_SOURCE_RELATIVE, AL_FALSE);
+                alSourcef(m_id, AL_ROLLOFF_FACTOR, 1.0f);
+                alSourcef(m_id, AL_REFERENCE_DISTANCE, 5.0f);  // Distance at which volume is full
+                alSourcef(m_id, AL_MAX_DISTANCE, 100.0f);      // Distance after which volume stays constant           
+            }
+        }
+
+        Source::~Source()
+        {
+            if (m_id != UINT_MAX)
+                alDeleteSources(1, &m_id);
+		}
+
+        void Source::play(uint8_t volume) const
+        {
+            if (m_id != UINT_MAX)
+            {
+                ALint sourceState;
+                alGetSourcei(m_id, AL_SOURCE_STATE, &sourceState);
+                if(sourceState != AL_PLAYING)
+                    alSourcePlay(m_id);
+                // update position
+                alSource3f(m_id, AL_POSITION, pos.x, pos.y, pos.z);
+
+                // check for errors
+                ALenum error = alGetError();
+                if (error != AL_NO_ERROR) {
+                    std::print("OpenAL error: {}\n", error);
+                }
+            }
+            else
+                CORE_AUDIO_ERR_LOG("source::play m_id == UINT_MAX (invalidated state)");
         }
     }
 }

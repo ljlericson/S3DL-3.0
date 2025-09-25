@@ -4,6 +4,8 @@
 #include <dr_wav.h>
 // for position
 #include <glm/glm.hpp>
+#include "../../Utils/Utils.h"
+#include "../AssetManagers/AssetManager.h"
 
 namespace Core
 {
@@ -13,12 +15,21 @@ namespace Core
 		{
 		public:
 			Source() = default;
-			Source(glm::vec3 pos, const char* audioFpath);
+			~Source();
+			Source(Manager::AssetManager* assetManager, const char* fpath, glm::vec3 pos);
 
-			void play(uint8_t volume);
+			void play(uint8_t volume) const;
 
+		public:
+			glm::vec3 pos;
 		private:
-			ALuint m_bufferID = 0;
+
+			// opengl starts buffer id indexing at 1
+			// but i'm not sure about openal so I'm
+			// just using UINT_MAX for the time being
+
+			ALuint m_bufferID = UINT_MAX;
+			ALuint m_id = UINT_MAX;
 		};
 	}
 }

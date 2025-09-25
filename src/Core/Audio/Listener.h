@@ -1,8 +1,11 @@
 #pragma once
 #include <print>
+#include <array>
 #include <AL/al.h>
+#include <AL/alc.h>
 // for position
 #include <glm/glm.hpp>
+#include "../../Utils/Utils.h"
 
 
 namespace Core
@@ -14,14 +17,15 @@ namespace Core
 		public:
 			Listener() = default;
 			Listener(glm::vec3 pos);
+			~Listener();
 
-
-
+			void update() const;
 		public:
 			glm::vec3 pos;
-
+			std::array<float, 6> orientation;
 		private:
-			ALuint m_id = 0;
+			ALCdevice* m_device = nullptr;
+			ALCcontext* m_context = nullptr;
 		};
 	}
 }

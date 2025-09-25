@@ -14,5 +14,8 @@ imgui.ini
 # build
 build/
 
+# some assets
+assets/audio/
+
 # vcpkg
 vcpkg_installed/

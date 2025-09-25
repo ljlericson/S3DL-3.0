@@ -13,9 +13,6 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-// windows specific
-#include <windows.h>
-#include <commdlg.h> // For OPENFILENAME structure
 // src files
 #include "../Utils/Utils.h"
 #include "../Utils/Timer.h"
@@ -51,8 +48,9 @@ namespace App
         Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
 		std::vector<std::unique_ptr<Core::OpenGlBackend::Model>> m_models;
 
+        Core::Audio::Listener* m_listener = nullptr;
+        Core::Audio::Source* m_source = nullptr;
+
         glm::vec3 m_scrColor;
-        bool m_getNewFile = false;
-        std::string m_selectedFile;
     };
 }

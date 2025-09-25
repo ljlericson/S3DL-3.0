@@ -1,3 +1,4 @@
+#define CORE_ENABLE_ERR_LOGS
 #include "Game.h"
 
 void App::Application::getImGuiStyle()
@@ -110,33 +111,7 @@ void App::Application::ImGuiPreRender()
 			if (ImGui::MenuItem("Print", "Ctrl+O")) { std::cout << "Hello World\n"; }
 			if (ImGui::MenuItem("Open", "Ctrl+W"))
 			{
-				OPENFILENAME ofn;       // Common dialog box structure
-				char szFile[260];       // Buffer for file name
-
-				// Initialize OPENFILENAME
-				ZeroMemory(&ofn, sizeof(ofn));
-				ofn.lStructSize = sizeof(ofn);
-				ofn.hwndOwner = NULL; // Handle to the owner window (can be your main window handle)
-				ofn.lpstrFile = szFile;
-				ofn.lpstrFile[0] = '\0';
-				ofn.nMaxFile = sizeof(szFile);
-				ofn.lpstrFilter = "All Files\0*.*\0Text Files\0*.TXT\0"; // Filter for file types
-				ofn.nFilterIndex = 1;
-				ofn.lpstrFileTitle = NULL;
-				ofn.nMaxFileTitle = 0;
-				ofn.lpstrInitialDir = NULL; // Initial directory
-				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-				if (GetOpenFileName(&ofn) == TRUE)
-				{
-					std::cout << "Selected file: " << ofn.lpstrFile << "\n";
-					m_selectedFile = std::filesystem::relative(ofn.lpstrFile).string();
-					m_getNewFile = true;
-				}
-				else
-				{
-					std::cout << "No file selected or dialog canceled.\n";
-				}
+				m_models.push_back(std::make_unique<Core::OpenGlBackend::Model>(Util::getFpathFromSelectionWindow()));
 			}
 			ImGui::EndMenu();
 		}
@@ -224,31 +199,17 @@ void App::Application::ImGuiPreRender()
 		}
 		if (ImGui::Button("New Model"))
 		{
-			OPENFILENAME ofn;       // Common dialog box structure
-			char szFile[260];       // Buffer for file name
-
-			// Initialize OPENFILENAME
-			ZeroMemory(&ofn, sizeof(ofn));
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = NULL; // Handle to the owner window (can be your main window handle)
-			ofn.lpstrFile = szFile;
-			ofn.lpstrFile[0] = '\0';
-			ofn.nMaxFile = sizeof(szFile);
-			ofn.lpstrFilter = "All Files\0*.*\0Text Files\0*.TXT\0"; // Filter for file types
-			ofn.nFilterIndex = 1;
-			ofn.lpstrFileTitle = NULL;
-			ofn.nMaxFileTitle = 0;
-			ofn.lpstrInitialDir = NULL; // Initial directory
-			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-			if (GetOpenFileName(&ofn) == TRUE)
-			{
-				std::cout << "Selected file: " << ofn.lpstrFile << "\n";
-				m_selectedFile = std::filesystem::relative(ofn.lpstrFile).string();
-				m_getNewFile = true;
-			}
+			m_models.push_back(std::make_unique<Core::OpenGlBackend::Model>(Util::getFpathFromSelectionWindow()));
 		}
 		ImGui::EndChild();
+	}
+
+	if (ImGui::Button("Load new sound"))
+	{
+		if (m_source)
+			delete m_source;
+
+		m_source = new Core::Audio::Source(glm::vec3(0.0f), Util::getFpathFromSelectionWindow().c_str());
 	}
 	
 	// end of window
@@ -346,6 +307,8 @@ App::Application::Application()
 	m_shader->build();
 	m_shader->attach();
 
+	m_listener = new Core::Audio::Listener(glm::vec3(0.0f));
+
 	//m_scrFBO = new Render::FBO{ "assets/shaders/frameBufferVert.glsl", "assets/shaders/frameBufferFrag.glsl" };
 	//if (!m_scrFBO)
 	//	throw;
@@ -355,14 +318,16 @@ void App::Application::run()
 {
     while(!glfwWindowShouldClose(m_window))
     {
-		if (m_getNewFile)
-		{
-			m_models.push_back(std::make_unique<Core::OpenGlBackend::Model>(m_selectedFile));
-			m_getNewFile = false;
-		}
 		m_camera->update_matrix(0.1f, 1000000.0f);
 		m_camera->inputs(m_window, 0);
 
+		m_listener->orientation = m_camera->getOrientation();
+		m_listener->pos = m_camera->pos;
+		m_listener->update();
+		if (m_source)
+		{
+			m_source->play(1);
+		}
 
 		OpenGlPreRender();
 

@@ -23,6 +23,8 @@ namespace Core
                 aiProcess_JoinIdenticalVertices |
                 aiProcess_SortByPType);
 
+            
+
             if (!scene)
             {
                 std::cout << "[ERROR]: Loading model failed: " << importer.GetErrorString() << '\n';

@@ -24,6 +24,36 @@ void Util::updateWindowSize(GLFWwindow* window)
 	}
 }
 
+std::string Util::getFpathFromSelectionWindow()
+{
+	OPENFILENAME ofn;       // Common dialog box structure
+	char szFile[260];       // Buffer for file name
+
+	// Initialize OPENFILENAME
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = NULL; // Handle to the owner window (can be your main window handle)
+	ofn.lpstrFile = szFile;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = "All Files\0*.*\0Text Files\0*.TXT\0"; // Filter for file types
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = NULL; // Initial directory
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+	if (GetOpenFileName(&ofn) == TRUE)
+	{
+		return std::filesystem::relative(ofn.lpstrFile).string();
+	}
+	else
+	{
+		UTIL_ERR_LOG("No file selected\n");
+		return "";
+	}
+}
+
 bool Util::checkGlErrors()
 {
 	GLenum err = glGetError();

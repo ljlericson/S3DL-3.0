@@ -12,7 +12,9 @@
 #include "mesh.h"
 #include "shader.h"
 #include "camera.h"
-#include "TextureManager.h"
+#include "../AssetManagers/TextureManager.h"
+#include "../AssetManagers/AssetManager.h"
+
 
 namespace Core
 {
@@ -38,7 +40,6 @@ namespace Core
 			static inline size_t sm_numModels = 0;
 			size_t m_localID = 0;
 			// manages textures
-			TextureManager* m_textureManager = nullptr;
 			glm::vec3 m_posBefore;
 			std::vector<std::unique_ptr<Mesh>> m_childMeshes;
 		};
