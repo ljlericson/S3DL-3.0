@@ -37,7 +37,7 @@ namespace Core
 
         Shader::~Shader()
         {
-            if (m_init)
+            if (m_init && m_linked)
                 glDeleteProgram(m_id);
         }
 

@@ -23,7 +23,7 @@ namespace Core
 		class Model
 		{
 		public:
-			Model(const std::string& fpath);
+			Model(Manager::AssetManager* assetManager, const std::string& fpath);
 
 			~Model();
 
@@ -42,6 +42,8 @@ namespace Core
 			// manages textures
 			glm::vec3 m_posBefore;
 			std::vector<std::unique_ptr<Mesh>> m_childMeshes;
+			// member reference pointer
+			Manager::TextureManager* m_textureManager; // NOT OWNED
 		};
 	}
 }

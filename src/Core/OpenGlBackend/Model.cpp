@@ -6,11 +6,11 @@ namespace Core
     {
         Model::~Model()
         {
-            delete m_textureManager;
+            
         }
 
-        Model::Model(const std::string& path)
-            : m_pos(0.0f), m_posBefore(0.0f), m_textureManager(new TextureManager{})
+        Model::Model(Manager::AssetManager* assetManager, const std::string& path)
+            : m_pos(0.0f), m_posBefore(0.0f), m_textureManager(assetManager->getTextureManager())
         {
             Assimp::Importer importer;
             const aiScene* scene = importer.ReadFile(path,

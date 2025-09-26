@@ -299,11 +299,13 @@ App::Application::Application()
 	}
 	//m_customFont = io.Fonts->AddFontFromFileTTF("assets/fonts/western.ttf", 16.0f);
 
+	m_assetManager = new Core::Manager::AssetManager{};
+
 	m_camera = new Core::OpenGlBackend::Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 	m_camera->fov = 90.0f;
 	m_camera->update_matrix(0.1f, 10000.0f);
 
-	m_shader = new Core::OpenGlBackend::Shader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
+	m_shader = &m_assetManager->getShadManager()->newShaderOrReference("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
 	m_shader->build();
 	m_shader->attach();
 

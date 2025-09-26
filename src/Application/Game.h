@@ -46,6 +46,7 @@ namespace App
         Core::OpenGlBackend::Camera* m_camera = nullptr;
         Core::OpenGlBackend::Shader* m_shader = nullptr;
         Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
+        Core::Manager::AssetManager* m_assetManager = nullptr;
 		std::vector<std::unique_ptr<Core::OpenGlBackend::Model>> m_models;
 
         Core::Audio::Listener* m_listener = nullptr;

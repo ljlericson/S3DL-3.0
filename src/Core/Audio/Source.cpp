@@ -6,11 +6,11 @@ namespace Core
     namespace Audio
     {
         Source::Source(Manager::AssetManager* assetManager, const char* fpath, glm::vec3 pos)
-            : pos(pos)
+            : pos(pos), mrp_bufferManager(assetManager->getAudioBufferManager())
         {
-            m_bufferID = assetManager->getAudioBufferManager()->newBuffer(fpath);
+            m_bufferID = mrp_bufferManager->newBufferOrReference(fpath);
 
-            if(m_bufferID != UINT_MAX)
+            if(m_bufferID != 0)
             {
                 alGenSources(1, &m_id);
                 alSourcei(m_id, AL_BUFFER, m_bufferID);
@@ -28,13 +28,16 @@ namespace Core
 
         Source::~Source()
         {
-            if (m_id != UINT_MAX)
+            if(m_bufferID != 0) // won't exist if it is 0
+                mrp_bufferManager->removeReference(m_id);
+
+            if (m_id != 0)
                 alDeleteSources(1, &m_id);
 		}
 
         void Source::play(uint8_t volume) const
         {
-            if (m_id != UINT_MAX)
+            if (m_id != 0)
             {
                 ALint sourceState;
                 alGetSourcei(m_id, AL_SOURCE_STATE, &sourceState);
@@ -50,7 +53,7 @@ namespace Core
                 }
             }
             else
-                CORE_AUDIO_ERR_LOG("source::play m_id == UINT_MAX (invalidated state)");
+                CORE_AUDIO_ERR_LOG("source::play m_id == 0 (invalidated state)");
         }
     }
 }

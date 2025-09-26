@@ -14,6 +14,10 @@ namespace Core
 		{
 		public:
 			AssetManager();
+			AssetManager(AssetManager&&) noexcept = default;
+			AssetManager(const AssetManager&) = delete;
+			AssetManager& operator=(const AssetManager&) = delete;
+			AssetManager& operator=(AssetManager&&) noexcept = default;
 
 			ModelManager* getModelManager() const;
 			TextureManager* getTextureManager() const;
@@ -21,10 +25,10 @@ namespace Core
 			AudioBufferManager* getAudioBufferManager() const;
 
 		private:
-			std::unique_ptr<ModelManager>        m_modelManager = nullptr;
-			std::unique_ptr<TextureManager>      m_texManager = nullptr;
-			std::unique_ptr<ShaderManager>       m_shadManager = nullptr;
-			std::unique_ptr<AudioBufferManager>  m_audioBufferManager = nullptr;
+			std::unique_ptr<ModelManager>        m_modelManager;
+			std::unique_ptr<TextureManager>      m_texManager;
+			std::unique_ptr<ShaderManager>       m_shadManager;
+			std::unique_ptr<AudioBufferManager>  m_audioBufferManager;
 		};
 	}
 }

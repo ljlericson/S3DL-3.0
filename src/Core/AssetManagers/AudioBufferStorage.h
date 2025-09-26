@@ -14,19 +14,23 @@ namespace Core
 		public:
 			AudioBufferManager() = default;
 
-			ALuint newBuffer(const char* fpath);
+			ALuint newBufferOrReference(const char* fpath);
 
-			ALuint tryGetBuffer(const std::string& fpath);
+			void removeReference(ALuint id);
+
+			void clear();
 
 		private:
 			struct AudioBuffer
 			{
 				AudioBuffer(const char* fpath);
 				~AudioBuffer();
-				ALuint id = UINT_MAX;
+				ALuint id = 0;
 			};
 
 			std::unordered_map<std::string, std::unique_ptr<AudioBuffer>> m_buffers;
+			std::unordered_map<ALuint, std::string> m_idToString;
+			std::unordered_map<std::string, size_t> m_refCounts;
 
 		};
 	}

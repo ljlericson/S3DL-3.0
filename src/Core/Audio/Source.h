@@ -24,12 +24,11 @@ namespace Core
 			glm::vec3 pos;
 		private:
 
-			// opengl starts buffer id indexing at 1
-			// but i'm not sure about openal so I'm
-			// just using UINT_MAX for the time being
+			ALuint m_bufferID = 0;
+			ALuint m_id = 0;
 
-			ALuint m_bufferID = UINT_MAX;
-			ALuint m_id = UINT_MAX;
+			// IMPORTANT: just a reference pointer, not owned 
+			Manager::AudioBufferManager* mrp_bufferManager = nullptr; // not owned
 		};
 	}
 }
