@@ -1,7 +1,6 @@
 # S3DL-3.0
 
 This is yet another remake of s3dl, I'm hoping to write clean and efficient code that doesn't get overcomplicated like s3dl 2.0. I am going to use a build system like cmake with this project and also use different naming conventions as something new to do.
-
 ![Preview Image](Preview.png)
 
 As you can see, current working features include:
@@ -9,6 +8,9 @@ As you can see, current working features include:
 	- Model loading with assimp (with textures)
 	- Resizeable window (not really a feature but kind of cool anyway)
 	- Broken FBO class that is not used
+	- Shader hot loading
+
+[Shader hot loading demo](https://www.youtube.com/watch?v=hBruc6g3oms)
 
 ### How To Build
 Please note this is a windows only project. 
