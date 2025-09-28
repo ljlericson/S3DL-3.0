@@ -6,8 +6,12 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include <type_traits>
+#include <thread>
+#include <chrono>
 #include <sys/stat.h>
 // src file
+#include "../BasicBackend/shader.h"
 #include "../OpenGlBackend/shader.h"
 
 namespace Core
@@ -22,20 +26,39 @@ namespace Core
 		public:
 			ShaderManager() = default;
 
-			std::shared_ptr<OpenGlBackend::Shader> newShaderOrGetShader(const std::string& fPathVert, const std::string& fPathFrag);
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
+			std::shared_ptr<T> newShaderOrGetShader(const std::string& fPathVert, const std::string& fPathFrag);
 
-			std::shared_ptr<OpenGlBackend::Shader> getShader(const std::string& fPathVert);
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
+			std::shared_ptr<T> getShader(const std::string& fPathVert);
 			
-			std::pair<std::string, std::string> getShaderFpath(OpenGlBackend::Shader* shad);
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
+			std::pair<std::string, std::string> getShaderFpath(BasicBackend::BasicShader* shad);
 
-			void hotReloadAll();
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
+			void reloadAll();
 
-			void hotReload(const std::string& key);
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
+			void reload(const std::string& key);
+
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
+			bool hotReloadLoop();
+
+			void doHotReloads(bool _do);
 
 			void clear();
+		
+		private:
+			void hotReloadThread();
 
 		private:
-			std::unordered_map<std::string, std::shared_ptr<OpenGlBackend::Shader>> m_shaders;
+			bool m_doHotReloads;
+			bool m_checkHotReloads;
+			std::string m_shadToReload;
+			std::thread* m_hotReloadThread = nullptr;
+			std::vector<std::string> m_shadsToReload;
+
+			std::unordered_map<std::string, std::shared_ptr<BasicBackend::BasicShader>> m_shaders;
 			std::unordered_map<size_t, std::string> m_idToString;
 			std::unordered_map<std::string, time_t> m_fragModTimes;
 			std::unordered_map<std::string, time_t> m_vertModTimes;

@@ -1,6 +1,10 @@
 #define CORE_ENABLE_ERR_LOGS
 #include "Game.h"
 #include "../Core/AssetManagers/ModelManager.h"
+#include "../Core/OpenGlBackend/Model.h"
+#include "../Core/OpenGlBackend/camera.h"
+//#include "../Core/OpenGlBackend/Fbo.h"
+#include "../Core/OpenGlBackend/Shader.h"
 
 void App::Application::getImGuiStyle()
 {
@@ -219,7 +223,7 @@ void App::Application::ImGuiPreRender()
 
 	if (ImGui::Button("Hot Reload Shaders"))
 	{
-		m_assetManager->getShadManager()->hotReloadAll();
+		m_assetManager->getShadManager()->reloadAll<Core::OpenGlBackend::Shader>();
 	}
 	
 	// end of window
@@ -244,7 +248,12 @@ void App::Application::OpenGlPreRender()
 void App::Application::OpenGlRender()
 {
 	for (auto& model : m_models)
-		model->Draw(m_shader.get(), m_camera);
+	{
+		if ((model->getLocalID() % 2) == 0)
+			model->Draw(m_shader2.get(), m_camera);
+		else
+			model->Draw(m_shader.get(), m_camera);
+	}
 }
 
 void App::Application::OpenGlPostRender()
@@ -314,7 +323,8 @@ App::Application::Application()
 	m_camera->fov = 90.0f;
 	m_camera->update_matrix(0.1f, 10000.0f);
 
-	m_shader = m_assetManager->getShadManager()->newShaderOrGetShader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
+	m_shader = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
+	m_shader2 = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl", "assets/shaders/frag2.glsl");
 
 	m_listener = new Core::Audio::Listener(glm::vec3(0.0f));
 
@@ -323,45 +333,10 @@ App::Application::Application()
 	//	throw;
 }
 
-static bool s_doHotReloads = false;
-static bool s_checkHotReloads = true;
-static time_t s_fragTime = 0;
-static time_t s_vertTime = 0;
-
-void App::Application::shaderHotReloadThread()
-{
-	using namespace std::chrono_literals;
-	struct stat fragStat, vertStat;
-	auto shadManager = m_assetManager->getShadManager();
-	if (stat(shadManager->getShaderFpath(m_shader.get()).first.c_str(), &vertStat) != 0) assert("Shader Could not get stat time");
-	if (stat(shadManager->getShaderFpath(m_shader.get()).second.c_str(), &fragStat) != 0) assert("Shader Could not get stat time");
-	s_fragTime = fragStat.st_mtime;
-	s_vertTime = vertStat.st_mtime;
-
-	while(s_checkHotReloads)
-	{
-		if(!s_doHotReloads)
-		{
-			struct stat fragStat1, vertStat1;
-
-			auto shadManager = m_assetManager->getShadManager();
-			if (stat(shadManager->getShaderFpath(m_shader.get()).first.c_str(), &vertStat1) != 0) assert("Shader Could not get stat time");
-			if (stat(shadManager->getShaderFpath(m_shader.get()).second.c_str(), &fragStat1) != 0) assert("Shader Could not get stat time");
-
-			if (s_fragTime < fragStat1.st_mtime || s_vertTime < vertStat1.st_mtime)
-			{
-				s_fragTime = fragStat1.st_mtime;
-				s_vertTime = vertStat1.st_mtime;
-				s_doHotReloads = true;
-			}
-			std::this_thread::sleep_for(50ms);
-		}
-	}
-}
-
 void App::Application::run()
 {
-	std::thread shadHotReloadThread(&App::Application::shaderHotReloadThread, this);
+	m_assetManager->getShadManager()->doHotReloads(true);
+
     while(!glfwWindowShouldClose(m_window))
     {
 		m_camera->update_matrix(0.1f, 1000000.0f);
@@ -374,13 +349,15 @@ void App::Application::run()
 		{
 			m_source->play(1);
 		}
-		if (s_doHotReloads)
+		if (m_assetManager->getShadManager()->hotReloadLoop<Core::OpenGlBackend::Shader>())
 		{
-			m_assetManager->getShadManager()->hotReload(m_assetManager->getShadManager()->getShaderFpath(m_shader.get()).first);
-			/*m_assetManager->getShadManager()->hotReloadAll();*/
+			if (m_shader->getID() == 0)
+				m_shader = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl");
 
-			s_doHotReloads = false;
+			if (m_shader2->getID() == 0)
+				m_shader2 = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl"); // fixed
 		}
+
 
 		OpenGlPreRender();
 
@@ -396,16 +373,16 @@ void App::Application::run()
         // poll events
         glfwPollEvents();
     }
-	s_checkHotReloads = false;
-	shadHotReloadThread.join();
+
+	m_assetManager->getShadManager()->doHotReloads(false);
 }
 
 App::Application::~Application()
 {
 	if(m_camera)
 		delete m_camera;
-	if (m_scrFBO)
-		delete m_scrFBO;
+	/*if (m_scrFBO)
+		delete m_scrFBO;*/
 
 	glfwTerminate();
 	ImGui_ImplGlfw_Shutdown();

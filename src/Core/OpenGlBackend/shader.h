@@ -6,34 +6,36 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "../BasicBackend/shader.h"
+
 
 namespace Core
 {
     namespace OpenGlBackend
     {
-        class Shader
+        class Shader : public BasicBackend::BasicShader
         {
         public:
 
             Shader();
             Shader(const char* vertSrc, const char* fragScr);
-            ~Shader();
+            ~Shader() override;
 
-            void build();
+            void build() override;
 
-            void attach();
+            void attach() override;
 
-            void use() const;
+            void use() const override;
 
-            void unuse() const;
+            void unuse() const override;
 
-            void setUniform(const std::string& name, int value) const;
+            void setUniform(const std::string& name, int value) const override;
 
-            void setUniform(const std::string& name, glm::mat4 value) const;
+            void setUniform(const std::string& name, glm::mat4 value) const override;
             
-            void reset();
+            void reset() override;
 
-            GLuint getID() const;
+            GLuint getID() const override;
 
         private:
             bool m_init, m_linked;

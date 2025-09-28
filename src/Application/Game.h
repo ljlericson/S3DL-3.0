@@ -18,12 +18,15 @@
 // src files
 #include "../Utils/Utils.h"
 #include "../Utils/Timer.h"
-#include "../Core/OpenGlBackend/Model.h"
-#include "../Core/OpenGlBackend/camera.h"
-#include "../Core/OpenGlBackend/Fbo.h"
 #include "../Core/Audio/Listener.h"
 #include "../Core/Audio/Source.h"
 
+namespace Core::OpenGlBackend
+{
+    class Shader;
+    class Model;
+    class Camera;
+}
 
 
 namespace App 
@@ -33,7 +36,6 @@ namespace App
     public:
 		Application();
         void run();
-        void shaderHotReloadThread();
         ~Application();
 
     private:
@@ -47,10 +49,11 @@ namespace App
         ImFont* m_customFont;
 
         Core::OpenGlBackend::Camera* m_camera = nullptr;
-        Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
+        //Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
         Core::Manager::AssetManager* m_assetManager = nullptr;
 
         std::shared_ptr<Core::OpenGlBackend::Shader> m_shader;
+        std::shared_ptr<Core::OpenGlBackend::Shader> m_shader2;
 		std::vector<std::shared_ptr<Core::OpenGlBackend::Model>> m_models;
 
         Core::Audio::Listener* m_listener = nullptr;

@@ -8,11 +8,13 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "../BasicBackend/texture.h"
+
 namespace Core
 {
     namespace OpenGlBackend
     {
-        class Texture
+        class Texture : public BasicBackend::BasicTexture
         {
         private:
             GLuint m_id;
@@ -23,23 +25,21 @@ namespace Core
             Texture();
             Texture(const char* fpath, GLuint texUnit, GLuint target);
             Texture(const aiTexture*, GLuint texUnit, const std::string& texSrc);
-            ~Texture();
+            ~Texture() override;
 
-            void setParam(GLuint pname, GLuint params);
+            void bind() const override;
 
-            void bind() const;
+            void unbind() const override;
 
-            void uniform(GLuint shadProgram, const char* uName) const;
+            void setParam(GLuint pname, GLuint params) override;
 
-            void unbind() const;
+            void uniform(GLuint shadProgram, const char* uName) const override;
 
-            bool isValid() const;
+            bool isValid() const override;
 
-            // underscore before to ensure it is at the bottom
-            // of the member list
-            void _delte();
+            void _delte() override;
 
-            GLuint getID() const;
+            GLuint getID() const override;
         };
     }
 }
