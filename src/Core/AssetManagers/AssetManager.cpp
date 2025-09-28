@@ -1,4 +1,7 @@
 #include "AssetManager.h"
+#include "ModelManager.h"
+#include "TextureManager.h"
+#include "../OpenGlBackend/Model.h"
 
 namespace Core
 {

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <string_view>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -17,7 +16,7 @@ namespace Core
         public:
 
             Shader();
-            Shader(std::string_view fpathVert, std::string_view fpathFrag);
+            Shader(const char* vertSrc, const char* fragScr);
             ~Shader();
 
             void build();
@@ -31,6 +30,8 @@ namespace Core
             void setUniform(const std::string& name, int value) const;
 
             void setUniform(const std::string& name, glm::mat4 value) const;
+            
+            void reset();
 
             GLuint getID() const;
 

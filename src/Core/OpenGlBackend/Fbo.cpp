@@ -4,8 +4,8 @@ namespace Core
 {
     namespace OpenGlBackend
     {
-        FBO::FBO(const std::string& fpathVert, const std::string& fpathFrag)
-            : m_id(0), m_fboTextureID(0), m_rbo(0), m_shad(nullptr)
+        FBO::FBO(Shader* shad)
+            : m_id(0), m_fboTextureID(0), m_rbo(0), m_shad(shad)
         {
             float rectVerts[] = {
                 // positions   // texCoords
@@ -59,10 +59,6 @@ namespace Core
             else
             {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-                m_shad = new Shader(fpathVert, fpathFrag);
-                m_shad->build();
-                m_shad->attach();
             }
 
         }

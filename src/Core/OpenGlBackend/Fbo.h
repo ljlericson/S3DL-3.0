@@ -13,7 +13,7 @@ namespace Core
 		class FBO
 		{
 		public:
-			FBO(const std::string& fpathVert, const std::string& fpathFrag);
+			FBO(Shader* shad);
 			~FBO();
 
 			void startPreRender() const;

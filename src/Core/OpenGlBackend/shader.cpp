@@ -9,30 +9,9 @@ namespace Core
         {
         }
 
-        Shader::Shader(std::string_view fpathVert, std::string_view fpathFrag)
-            : m_init(false), m_linked(false), m_id(0), m_idFrag(0), m_idVert(0), m_fragSrc{ "" }, m_vertSrc{ "" }
-        {
-            std::ifstream fileVert(fpathVert.data());
-            std::ifstream fileFrag(fpathFrag.data());
-
-            if (!fileVert || !fileFrag)
-            {
-                std::cout << "[ERROR]: Invalid file given to shader on init\n";
-            }
-            else
-            {
-                std::string lineFrag;
-                while (std::getline(fileFrag, lineFrag))
-                    m_fragSrc += lineFrag + "\n";
-
-                std::string lineVert;
-                while (std::getline(fileVert, lineVert))
-                    m_vertSrc += lineVert + "\n";
-
-                m_init = true;
-            }
-
-        }
+        Shader::Shader(const char* vertSrc, const char* fragSrc)
+            : m_init(true), m_linked(false), m_id(0), m_idFrag(0), m_idVert(0), m_fragSrc{ fragSrc }, m_vertSrc{ vertSrc }
+        {  }
 
 
         Shader::~Shader()
@@ -137,6 +116,17 @@ namespace Core
         {
             if (m_linked && m_init)
                 glUseProgram(m_id);
+        }
+
+        void Shader::reset()
+        {
+            if (m_init && m_linked)
+                glDeleteProgram(m_id);
+            m_init = false;
+            m_linked = false;
+            m_id = 0;
+            m_idFrag = 0;
+            m_idVert = 0;
         }
 
         void Shader::unuse() const

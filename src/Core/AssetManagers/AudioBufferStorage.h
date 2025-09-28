@@ -1,3 +1,4 @@
+#pragma once
 #include <print>
 #include <string>
 #include <memory>

@@ -1,10 +1,17 @@
+#pragma once
 #include <memory>
 #include <unordered_map>
-
-#include "TextureManager.h"
 #include "AudioBufferStorage.h"
-#include "ModelManager.h"
 #include "ShaderManager.h"
+
+namespace Core 
+{
+	namespace Manager 
+	{
+		class ModelManager;
+		class TextureManager;
+	}
+}
 
 namespace Core
 {

@@ -23,15 +23,19 @@ namespace Core
 		class Model
 		{
 		public:
-			Model(Manager::AssetManager* assetManager, const std::string& fpath);
+			Model(Manager::TextureManager* textureManager, const aiScene* model, const std::string& path);
 
 			~Model();
+
+			// make error checking easy and fairly readable
+			operator bool();
 
 			void Draw(Shader* shader, Camera* camera);
 
 			GLuint getNumTextures() const;
 
 			size_t getLocalID() const;
+
 
 		public:
 			std::string m_name;

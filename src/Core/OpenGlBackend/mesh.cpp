@@ -31,7 +31,7 @@ namespace Core
             m_vbo{ vertData.data(), GLsizeiptr(vertData.size() * sizeof(float)) },
             m_texture{ texture }
         {
-            m_vao.bind(); // poor vbo getting sandwiched between vao and ebo :(
+            m_vao.bind();
             m_ebo.bind();
 
             m_vao.linkAttrib(m_vbo, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);                       // pos
@@ -64,10 +64,12 @@ namespace Core
             m_ebo.unbind();
             m_vao.unbind();
             shader->unuse();
-
+            
             if (Util::checkGlErrors())
                 std::cout << "MESH::DRAW1: " << Util::getGlErrAfterCheck();
 
         }
+
+        //Mesh::Instance Mesh:
     }
 }

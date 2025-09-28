@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 #include <array>
+#include <thread>
+#include <chrono>
 // nGL libraries
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/glad.h>
@@ -31,6 +33,7 @@ namespace App
     public:
 		Application();
         void run();
+        void shaderHotReloadThread();
         ~Application();
 
     private:
@@ -44,10 +47,11 @@ namespace App
         ImFont* m_customFont;
 
         Core::OpenGlBackend::Camera* m_camera = nullptr;
-        Core::OpenGlBackend::Shader* m_shader = nullptr;
         Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
         Core::Manager::AssetManager* m_assetManager = nullptr;
-		std::vector<std::unique_ptr<Core::OpenGlBackend::Model>> m_models;
+
+        std::shared_ptr<Core::OpenGlBackend::Shader> m_shader;
+		std::vector<std::shared_ptr<Core::OpenGlBackend::Model>> m_models;
 
         Core::Audio::Listener* m_listener = nullptr;
         Core::Audio::Source* m_source = nullptr;

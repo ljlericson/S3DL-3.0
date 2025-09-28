@@ -1,5 +1,6 @@
 #define CORE_ENABLE_ERR_LOGS
 #include "Game.h"
+#include "../Core/AssetManagers/ModelManager.h"
 
 void App::Application::getImGuiStyle()
 {
@@ -111,7 +112,7 @@ void App::Application::ImGuiPreRender()
 			if (ImGui::MenuItem("Print", "Ctrl+O")) { std::cout << "Hello World\n"; }
 			if (ImGui::MenuItem("Open", "Ctrl+W"))
 			{
-				m_models.push_back(std::make_unique<Core::OpenGlBackend::Model>(Util::getFpathFromSelectionWindow()));
+				m_models.push_back(m_assetManager->getModelManager()->newModelOrGetModel(m_assetManager->getTextureManager(), Util::getFpathFromSelectionWindow()));
 			}
 			ImGui::EndMenu();
 		}
@@ -169,28 +170,28 @@ void App::Application::ImGuiPreRender()
 	{
 
 		ImGui::BeginChild("Model Settings");
-		for (auto& m_model : m_models)
+		for (auto& model : m_models)
 		{
-			ImGui::PushID((int)m_model->getLocalID());
-			if (ImGui::CollapsingHeader(m_model->m_name.c_str()))
+			ImGui::PushID((int)model->getLocalID());
+			if (ImGui::CollapsingHeader(model->m_name.c_str()))
 			{
-				if (ImGui::CollapsingHeader(((m_model->m_name.c_str()) + std::string(" INFO")).c_str()))
+				if (ImGui::CollapsingHeader(((model->m_name.c_str()) + std::string(" INFO")).c_str()))
 				{
-					ImGui::Text("Number of textures: %d", m_model->getNumTextures());
-					ImGui::Text("Loacl ID: %d", m_model->getLocalID());
+					ImGui::Text("Number of textures: %d", model->getNumTextures());
+					ImGui::Text("Loacl ID: %d", model->getLocalID());
 				}
-				if (ImGui::CollapsingHeader(((m_model->m_name.c_str()) + std::string(" MOVE")).c_str()))
+				if (ImGui::CollapsingHeader(((model->m_name.c_str()) + std::string(" MOVE")).c_str()))
 				{
-					ImGui::InputFloat3((m_model->m_name.c_str() + std::string(" Pos Input")).c_str(), glm::value_ptr(m_model->m_pos));
-					ImGui::SliderFloat3((m_model->m_name.c_str() + std::string(" Pos Slider")).c_str(), glm::value_ptr(m_model->m_pos), -100.0f, 100.0f);
+					ImGui::InputFloat3((model->m_name.c_str() + std::string(" Pos Input")).c_str(), glm::value_ptr(model->m_pos));
+					ImGui::SliderFloat3((model->m_name.c_str() + std::string(" Pos Slider")).c_str(), glm::value_ptr(model->m_pos), -100.0f, 100.0f);
 					if (ImGui::Button("Paste on camera"))
 					{
-						m_model->m_pos = m_camera->pos;
+						model->m_pos = m_camera->pos;
 					}
 				}
-				if(ImGui::Button((std::string("Delete ") + m_model->m_name.c_str()).c_str()))
+				if(ImGui::Button((std::string("Delete ") + model->m_name.c_str()).c_str()))
 				{
-					m_models.erase(std::remove(m_models.begin(), m_models.end(), m_model), m_models.end());
+					m_models.erase(std::remove(m_models.begin(), m_models.end(), model), m_models.end());
 					ImGui::PopID();
 					break; // Exit the loop to avoid invalid iterator access
 				}
@@ -199,7 +200,11 @@ void App::Application::ImGuiPreRender()
 		}
 		if (ImGui::Button("New Model"))
 		{
-			m_models.push_back(std::make_unique<Core::OpenGlBackend::Model>(Util::getFpathFromSelectionWindow()));
+			m_models.push_back(
+				m_assetManager->getModelManager()->newModelOrGetModel(
+					m_assetManager->getTextureManager(), 
+					Util::getFpathFromSelectionWindow()
+				));
 		}
 		ImGui::EndChild();
 	}
@@ -209,7 +214,12 @@ void App::Application::ImGuiPreRender()
 		if (m_source)
 			delete m_source;
 
-		m_source = new Core::Audio::Source(glm::vec3(0.0f), Util::getFpathFromSelectionWindow().c_str());
+		m_source = new Core::Audio::Source(m_assetManager, Util::getFpathFromSelectionWindow().c_str(), glm::vec3(0.0f));
+	}
+
+	if (ImGui::Button("Hot Reload Shaders"))
+	{
+		m_assetManager->getShadManager()->hotReloadAll();
 	}
 	
 	// end of window
@@ -231,11 +241,10 @@ void App::Application::OpenGlPreRender()
 	glClearColor(m_scrColor.x, m_scrColor.y, m_scrColor.z, 1.0f);
 }
 
-
 void App::Application::OpenGlRender()
 {
-	for (auto& m_model : m_models)
-		m_model->Draw(m_shader, m_camera);
+	for (auto& model : m_models)
+		model->Draw(m_shader.get(), m_camera);
 }
 
 void App::Application::OpenGlPostRender()
@@ -305,9 +314,7 @@ App::Application::Application()
 	m_camera->fov = 90.0f;
 	m_camera->update_matrix(0.1f, 10000.0f);
 
-	m_shader = &m_assetManager->getShadManager()->newShaderOrReference("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
-	m_shader->build();
-	m_shader->attach();
+	m_shader = m_assetManager->getShadManager()->newShaderOrGetShader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
 
 	m_listener = new Core::Audio::Listener(glm::vec3(0.0f));
 
@@ -316,8 +323,45 @@ App::Application::Application()
 	//	throw;
 }
 
+static bool s_doHotReloads = false;
+static bool s_checkHotReloads = true;
+static time_t s_fragTime = 0;
+static time_t s_vertTime = 0;
+
+void App::Application::shaderHotReloadThread()
+{
+	using namespace std::chrono_literals;
+	struct stat fragStat, vertStat;
+	auto shadManager = m_assetManager->getShadManager();
+	if (stat(shadManager->getShaderFpath(m_shader.get()).first.c_str(), &vertStat) != 0) assert("Shader Could not get stat time");
+	if (stat(shadManager->getShaderFpath(m_shader.get()).second.c_str(), &fragStat) != 0) assert("Shader Could not get stat time");
+	s_fragTime = fragStat.st_mtime;
+	s_vertTime = vertStat.st_mtime;
+
+	while(s_checkHotReloads)
+	{
+		if(!s_doHotReloads)
+		{
+			struct stat fragStat1, vertStat1;
+
+			auto shadManager = m_assetManager->getShadManager();
+			if (stat(shadManager->getShaderFpath(m_shader.get()).first.c_str(), &vertStat1) != 0) assert("Shader Could not get stat time");
+			if (stat(shadManager->getShaderFpath(m_shader.get()).second.c_str(), &fragStat1) != 0) assert("Shader Could not get stat time");
+
+			if (s_fragTime < fragStat1.st_mtime || s_vertTime < vertStat1.st_mtime)
+			{
+				s_fragTime = fragStat1.st_mtime;
+				s_vertTime = vertStat1.st_mtime;
+				s_doHotReloads = true;
+			}
+			std::this_thread::sleep_for(50ms);
+		}
+	}
+}
+
 void App::Application::run()
 {
+	std::thread shadHotReloadThread(&App::Application::shaderHotReloadThread, this);
     while(!glfwWindowShouldClose(m_window))
     {
 		m_camera->update_matrix(0.1f, 1000000.0f);
@@ -329,6 +373,13 @@ void App::Application::run()
 		if (m_source)
 		{
 			m_source->play(1);
+		}
+		if (s_doHotReloads)
+		{
+			m_assetManager->getShadManager()->hotReload(m_assetManager->getShadManager()->getShaderFpath(m_shader.get()).first);
+			/*m_assetManager->getShadManager()->hotReloadAll();*/
+
+			s_doHotReloads = false;
 		}
 
 		OpenGlPreRender();
@@ -345,14 +396,14 @@ void App::Application::run()
         // poll events
         glfwPollEvents();
     }
+	s_checkHotReloads = false;
+	shadHotReloadThread.join();
 }
 
 App::Application::~Application()
 {
 	if(m_camera)
 		delete m_camera;
-	if(m_shader)
-		delete m_shader;
 	if (m_scrFBO)
 		delete m_scrFBO;
 

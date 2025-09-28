@@ -128,7 +128,7 @@ namespace Core
             GLint loc = glGetUniformLocation(shadProgram, uName);
             if (loc == -1 && true) // sometimes disable this error because its annoyings
             {
-                std::cerr << "[ERROR]: Texture uniform not found!\n";
+                //std::cerr << "[ERROR]: Texture uniform not found!\n";
             }
             else
             {
