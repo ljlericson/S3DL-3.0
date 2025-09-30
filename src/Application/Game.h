@@ -20,12 +20,16 @@
 #include "../Utils/Timer.h"
 #include "../Core/Audio/Listener.h"
 #include "../Core/Audio/Source.h"
+#include "../Core/OpenGlBackend/Model.h"
+#include "../Core/OpenGlBackend/camera.h"
+//#include "../Core/OpenGlBackend/Fbo.h"
+#include "../Core/OpenGlBackend/Shader.h"
 
-namespace Core::OpenGlBackend
+#include "../Core/OpenGlBackend/CubeMap.h"
+
+namespace Core::Manager
 {
-    class Shader;
-    class Model;
-    class Camera;
+    class AssetManager;
 }
 
 
@@ -49,11 +53,14 @@ namespace App
         ImFont* m_customFont;
 
         Core::OpenGlBackend::Camera* m_camera = nullptr;
+        Core::OpenGlBackend::CubeMap* m_skyBox = nullptr;
         //Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
         Core::Manager::AssetManager* m_assetManager = nullptr;
 
         std::shared_ptr<Core::OpenGlBackend::Shader> m_shader;
         std::shared_ptr<Core::OpenGlBackend::Shader> m_shader2;
+        std::shared_ptr<Core::OpenGlBackend::Shader> m_skyShad;
+
 		std::vector<std::shared_ptr<Core::OpenGlBackend::Model>> m_models;
 
         Core::Audio::Listener* m_listener = nullptr;

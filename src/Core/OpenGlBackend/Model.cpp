@@ -1,4 +1,5 @@
 ﻿#include "Model.h"
+#include "../Manager/TextureManager.h"
 
 namespace Core
 {

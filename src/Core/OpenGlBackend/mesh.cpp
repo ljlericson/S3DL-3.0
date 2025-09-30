@@ -55,6 +55,10 @@ namespace Core
             shader->setUniform("model", model);
             camera->matrix(shader, "camMat");
 
+            GLuint locTime = glGetUniformLocation(shader->getID(), "uTime");
+            if (locTime != 0)
+                glUniform1f(locTime, (float)glfwGetTime());
+
             m_vao.bind();
             m_ebo.bind();
             m_texture->bind();

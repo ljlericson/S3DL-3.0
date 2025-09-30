@@ -12,8 +12,7 @@
 #include "mesh.h"
 #include "shader.h"
 #include "camera.h"
-#include "../AssetManagers/TextureManager.h"
-#include "../AssetManagers/AssetManager.h"
+#include "../Manager/AssetManager.h"
 
 
 namespace Core

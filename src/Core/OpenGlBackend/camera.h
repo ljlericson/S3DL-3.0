@@ -38,6 +38,7 @@ namespace Core
             glm::vec3 up;
             glm::vec3 orientation;
             glm::mat4 cam_mat;
+            glm::mat4 m_view;
 
         public:
             // use mutable values
@@ -56,6 +57,8 @@ namespace Core
             void matrix(Shader* shader, const char* uniform);
 
             std::array<float, 6> getOrientation();
+
+            glm::mat4 getView() const;
 
             void inputs(GLFWwindow* window, float heightData);
         };

@@ -5,7 +5,7 @@
 // for position
 #include <glm/glm.hpp>
 #include "../../Utils/Utils.h"
-#include "../AssetManagers/AssetManager.h"
+#include "../Manager/AssetManager.h"
 
 namespace Core
 {

@@ -4,6 +4,13 @@ namespace Core
 {
 	namespace Manager
 	{
+		ShaderManager::ShaderManager()
+			:
+			m_checkHotReloads(false), 
+			m_doHotReloads(false), 
+			m_runHotReloadsOnDiffThread(true)
+		{	}
+
 		template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
 		std::shared_ptr<T> ShaderManager::newShaderOrGetShader(const std::string& fPathVert, const std::string& fPathFrag)
 		{
@@ -116,16 +123,20 @@ namespace Core
 							vertSrc += lineVert + "\n";
 					}
 
-					shad->reset();
-					shad = std::make_shared<T>( vertSrc.c_str(), fragSrc.c_str() );
-					shad->build();
-					shad->attach();
+					auto newShad = std::make_shared<T>(vertSrc.c_str(), fragSrc.c_str());
+					newShad->build();
+					newShad->attach();
 
-					m_idToString.erase(m_idToString.find(idBefore));
-					m_idToString.insert({
-						shad->getID(),
-						key
-					});
+					if(newShad->getID() != 0)
+					{
+						shad->reset();
+						shad = newShad;
+						m_idToString.erase(m_idToString.find(idBefore));
+						m_idToString.insert({
+							shad->getID(),
+							key
+							});
+					}
 				}
 			}
 		}
@@ -157,16 +168,20 @@ namespace Core
 						vertSrc += lineVert + "\n";
 				}
 
-				shad->reset();
-				shad = std::make_shared<T>( vertSrc.c_str(), fragSrc.c_str() );
-				shad->build();
-				shad->attach();
+				auto newShad = std::make_shared<T>(vertSrc.c_str(), fragSrc.c_str());
+				newShad->build();
+				newShad->attach();
 
-				m_idToString.erase(m_idToString.find(idBefore));
-				m_idToString.insert({
-					shad->getID(),
-					key
-				});
+				if (newShad->getID() != 0)
+				{
+					shad->reset();
+					shad = newShad;
+					m_idToString.erase(m_idToString.find(idBefore));
+					m_idToString.insert({
+						shad->getID(),
+						key
+						});
+				}
 			}
 		}
 
@@ -184,7 +199,7 @@ namespace Core
 			return { "123", "123" };
 		}
 
-		void ShaderManager::doHotReloads(bool _do)
+		void ShaderManager::doHotReloads(bool _do, ShaderManager::HotLoading specification)
 		{
 			m_checkHotReloads = _do;
 			if (!m_checkHotReloads)
@@ -195,18 +210,41 @@ namespace Core
 					if (m_hotReloadThread)
 						delete m_hotReloadThread;
 				}
+				m_doHotReloads = false;
+				m_checkHotReloads = false;
 			}
 			else
 			{
-				m_hotReloadThread = new std::thread{ &Core::Manager::ShaderManager::hotReloadThread, this };
-				m_doHotReloads = true;
-				m_checkHotReloads = true;
+				if (!m_hotReloadThread && specification == HotLoading::runOnDifferentThread)
+				{
+					m_runHotReloadsOnDiffThread = true;
+					m_hotReloadThread = new std::thread{ &Core::Manager::ShaderManager::hotReloadThread, this };
+
+					m_checkHotReloads = true;
+				}
+				else if(m_hotReloadThread && specification == HotLoading::runOnSameThread)
+				{
+					m_runHotReloadsOnDiffThread = false;
+					
+					// first step: stop the thread from looping
+					m_checkHotReloads = false;
+					// second step: join the thread
+					m_hotReloadThread->join();
+					// thrid step: delete the thread as we won't need it for now
+					delete m_hotReloadThread;
+					// fourth step: enable hot reload checks 
+					m_checkHotReloads = true;
+				}
 			}
 		}
 
 		void ShaderManager::hotReloadThread()
 		{
 			using namespace std::chrono_literals;
+			// there is never a case where this should not be 
+			if (!m_doHotReloads)
+				m_doHotReloads = true;
+
 			while (m_checkHotReloads)
 			{
 				if (m_doHotReloads)
@@ -234,6 +272,9 @@ namespace Core
 		template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
 		bool ShaderManager::hotReloadLoop()
 		{
+			if (!m_runHotReloadsOnDiffThread)
+				this->reloadAll<T>();
+
 			bool reloadedOne = false;
 			if(m_checkHotReloads)
 			{

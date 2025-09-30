@@ -25,12 +25,12 @@ namespace Core
 
         void Camera::update_matrix(float fnear, float ffar)
         {
-            glm::mat4 view = glm::mat4(1.0f);
+            m_view = glm::mat4(1.0f);
             glm::mat4 proj = glm::mat4(1.0f);
 
-            view = glm::lookAt(pos, pos + orientation, up);
+            m_view = glm::lookAt(pos, pos + orientation, up);
             proj = glm::perspectiveFov(glm::radians(fov), (float)Util::width, (float)Util::height, fnear, ffar);
-            cam_mat = proj * view;
+            cam_mat = proj * m_view;
         }
 
         void Camera::matrix(Shader* shad, const char* uniform)
@@ -165,6 +165,11 @@ namespace Core
                 orientation.x, orientation.y, orientation.z,
                 up.x, up.y, up.z
             };
+        }
+
+        glm::mat4 Camera::getView() const
+        {
+            return m_view;
         }
     }
 }

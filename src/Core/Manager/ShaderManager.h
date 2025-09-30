@@ -24,7 +24,14 @@ namespace Core
 		class ShaderManager 
 		{
 		public:
-			ShaderManager() = default;
+			enum class HotLoading
+			{
+				runOnDifferentThread,
+				runOnSameThread
+			};
+
+		public:
+			ShaderManager();
 
 			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
 			std::shared_ptr<T> newShaderOrGetShader(const std::string& fPathVert, const std::string& fPathFrag);
@@ -44,7 +51,7 @@ namespace Core
 			template<typename T> requires std::is_base_of_v<BasicBackend::BasicShader, T>
 			bool hotReloadLoop();
 
-			void doHotReloads(bool _do);
+			void doHotReloads(bool _do, ShaderManager::HotLoading specification);
 
 			void clear();
 		
@@ -52,6 +59,7 @@ namespace Core
 			void hotReloadThread();
 
 		private:
+			bool m_runHotReloadsOnDiffThread;
 			bool m_doHotReloads;
 			bool m_checkHotReloads;
 			std::string m_shadToReload;

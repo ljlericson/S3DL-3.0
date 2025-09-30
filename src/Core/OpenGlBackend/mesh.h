@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "../BasicBackend/mesh.h"
+
 #include "shader.h"
 #include "vao.h"
 #include "vbo.h"
@@ -17,7 +19,7 @@ namespace Core
 {
 	namespace OpenGlBackend
 	{
-		class Mesh
+		class Mesh : public BasicBackend::BasicMesh
 		{
 		public:
 			Mesh() = default;
@@ -26,7 +28,7 @@ namespace Core
 
 			Mesh(std::vector<float>& vertData, std::vector<GLuint>& indiData, std::shared_ptr<Texture> texture);
 
-			~Mesh();
+			~Mesh() override;
 
 			void draw(Shader* shader, Camera* camera) const;
 

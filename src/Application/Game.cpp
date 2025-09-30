@@ -1,10 +1,12 @@
 #define CORE_ENABLE_ERR_LOGS
 #include "Game.h"
-#include "../Core/AssetManagers/ModelManager.h"
+#include "../Core/Manager/ModelManager.h"
 #include "../Core/OpenGlBackend/Model.h"
 #include "../Core/OpenGlBackend/camera.h"
 //#include "../Core/OpenGlBackend/Fbo.h"
 #include "../Core/OpenGlBackend/Shader.h"
+
+
 
 void App::Application::getImGuiStyle()
 {
@@ -220,11 +222,6 @@ void App::Application::ImGuiPreRender()
 
 		m_source = new Core::Audio::Source(m_assetManager, Util::getFpathFromSelectionWindow().c_str(), glm::vec3(0.0f));
 	}
-
-	if (ImGui::Button("Hot Reload Shaders"))
-	{
-		m_assetManager->getShadManager()->reloadAll<Core::OpenGlBackend::Shader>();
-	}
 	
 	// end of window
 	//ImGui::PopFont();
@@ -247,6 +244,8 @@ void App::Application::OpenGlPreRender()
 
 void App::Application::OpenGlRender()
 {
+	m_skyBox->draw(m_skyShad.get(), m_camera);
+
 	for (auto& model : m_models)
 	{
 		if ((model->getLocalID() % 2) == 0)
@@ -323,8 +322,19 @@ App::Application::Application()
 	m_camera->fov = 90.0f;
 	m_camera->update_matrix(0.1f, 10000.0f);
 
+	m_skyBox = new Core::OpenGlBackend::CubeMap(
+		"assets/skybox/right.jpg",
+		"assets/skybox/left.jpg",
+		"assets/skybox/top.jpg",
+		"assets/skybox/bottom.jpg",
+		"assets/skybox/front.jpg",
+		"assets/skybox/back.jpg"
+	);
+
 	m_shader = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
 	m_shader2 = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl", "assets/shaders/frag2.glsl");
+	m_skyShad = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/skyBoxVert.glsl", "assets/shaders/skyBoxFrag.glsl");
+
 
 	m_listener = new Core::Audio::Listener(glm::vec3(0.0f));
 
@@ -335,7 +345,7 @@ App::Application::Application()
 
 void App::Application::run()
 {
-	m_assetManager->getShadManager()->doHotReloads(true);
+	m_assetManager->getShadManager()->doHotReloads(true, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
 
     while(!glfwWindowShouldClose(m_window))
     {
@@ -356,6 +366,9 @@ void App::Application::run()
 
 			if (m_shader2->getID() == 0)
 				m_shader2 = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl"); // fixed
+
+			if (m_skyShad->getID() == 0)
+				m_skyShad = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/skyBoxVert.glsl"); // fixed
 		}
 
 
@@ -374,7 +387,7 @@ void App::Application::run()
         glfwPollEvents();
     }
 
-	m_assetManager->getShadManager()->doHotReloads(false);
+	m_assetManager->getShadManager()->doHotReloads(false, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
 }
 
 App::Application::~Application()

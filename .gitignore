@@ -16,6 +16,6 @@ build/
 
 # some assets
 assets/audio/
-
+assets/skybox
 # vcpkg
 vcpkg_installed/
