@@ -9,8 +9,11 @@ As you can see, current working features include:
 	- Resizeable window (not really a feature but kind of cool anyway)
 	- Broken FBO class that is not used
 	- Shader hot loading
+	- A cubemap implementation for OpenGL
 
 [Shader hot loading demo](https://www.youtube.com/watch?v=hBruc6g3oms)
+
+[Cubemap Skybox demo](https://youtu.be/w4jdCTSfflE)
 
 ### How To Build
 Please note this is a windows only project. 
