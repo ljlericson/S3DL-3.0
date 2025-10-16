@@ -49,6 +49,8 @@ namespace Core
             float fov;
             float gravity;
 
+            float shaderNoiseLevel = 0.04f;
+
 
             Camera(glm::vec3 pos);
 

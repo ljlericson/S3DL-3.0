@@ -15,11 +15,10 @@ namespace Core
 					aiProcess_ConvertToLeftHanded |
 					aiProcess_JoinIdenticalVertices |
 					aiProcess_Triangulate |
-					aiProcess_FlipUVs |
 					aiProcess_PreTransformVertices |
 					aiProcess_CalcTangentSpace |
-					aiProcess_JoinIdenticalVertices |
-					aiProcess_SortByPType
+					aiProcess_SortByPType |
+					aiProcess_FlipUVs
 				);
 
 				if(scene)
@@ -70,5 +69,6 @@ namespace Core
 			m_refCounts.clear();
 			m_idToString.clear();
 		}
+
 	}
 }

@@ -12,6 +12,11 @@ namespace Core
         class BasicShader
         {
         public:
+            enum class UniformWarningType
+            {
+                giveWarning,
+                doNotGiveWarning
+            };
 
             virtual ~BasicShader() = default;
 
@@ -23,9 +28,13 @@ namespace Core
 
             virtual void unuse() const = 0;
 
-            virtual void setUniform(const std::string& name, int value) const = 0;
+            virtual void setUniform(const std::string& name, int value, UniformWarningType specification) const = 0;
 
-            virtual void setUniform(const std::string& name, glm::mat4 value) const = 0;
+            virtual void setUniform(const std::string& name, glm::mat4 value, UniformWarningType specification) const = 0;
+
+            virtual void setUniform(const std::string& name, float value, UniformWarningType specification) const = 0;
+             
+            virtual void setUniform(const std::string& name, glm::vec3 value, UniformWarningType specification) const = 0;
 
             virtual void reset() = 0;
 

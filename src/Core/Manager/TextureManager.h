@@ -16,11 +16,17 @@ namespace Core
 		class TextureManager
 		{
 		public:
+			enum class ReturnOnError
+			{
+				returnInvalidTexture,
+				returnNullptr
+			};
+		public:
 			TextureManager();
 			~TextureManager();
 
-			std::shared_ptr<OpenGlBackend::Texture> newTexture(const aiTexture* texture, const std::string& texStr);
-			std::shared_ptr<OpenGlBackend::Texture> newTexture(const std::string& fpath, GLuint target);
+			std::shared_ptr<OpenGlBackend::Texture> newTexture(const aiTexture* texture, const std::string& texStr, ReturnOnError specification);
+			std::shared_ptr<OpenGlBackend::Texture> newTexture(const std::string& fpath, GLuint target, ReturnOnError specification);
 
 			std::shared_ptr<OpenGlBackend::Texture> getInvalidTex() const;
 			GLuint getNumTextures() const;

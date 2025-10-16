@@ -62,7 +62,6 @@ namespace Core
 			bool m_runHotReloadsOnDiffThread;
 			bool m_doHotReloads;
 			bool m_checkHotReloads;
-			std::string m_shadToReload;
 			std::thread* m_hotReloadThread = nullptr;
 			std::vector<std::string> m_shadsToReload;
 

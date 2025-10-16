@@ -18,7 +18,7 @@
 namespace Core::OpenGlBackend
 {
 	// |---- IMPORTANT ----------------------------|
-	// Most if not all of the code in this class was
+	// Most of the code in this class was inspired
 	// written by https://github.com/VictorGordan/
 
 	class CubeMap

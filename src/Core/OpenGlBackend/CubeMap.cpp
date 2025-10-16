@@ -84,15 +84,16 @@ namespace Core::OpenGlBackend
 			if (data)
 			{
 				stbi_set_flip_vertically_on_load(false);
+				GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
 				glTexImage2D
 				(
 					GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
 					0,
-					GL_RGB,
+					format,
 					width,
 					height,
 					0,
-					GL_RGB,
+					format,
 					GL_UNSIGNED_BYTE,
 					data
 				);

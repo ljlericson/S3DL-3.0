@@ -1,5 +1,4 @@
 ﻿#include "Model.h"
-#include "../Manager/TextureManager.h"
 
 namespace Core
 {
@@ -7,7 +6,7 @@ namespace Core
     {
         Model::~Model()
         {
-            
+
         }
 
         Model::Model(Manager::TextureManager* textureManager, const aiScene* model, const std::string& path)
@@ -59,47 +58,59 @@ namespace Core
 
                     // material / texture
                     aiString texturePath;
-                    std::shared_ptr<Texture> tex = nullptr;
                     auto* mat = model->mMaterials[model->mMeshes[i]->mMaterialIndex];
 
-                    if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-                    {
-                        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
-                        {
-                            std::string texStr = texturePath.C_Str();
+                    std::shared_ptr<Texture> diffuse = this->loadTexture(mat, model, i, aiTextureType_DIFFUSE, Manager::TextureManager::ReturnOnError::returnInvalidTexture);
+                    std::shared_ptr<Texture> metallic = nullptr; // this->loadTexture(mat, model, i, aiTextureType_METALNESS, Manager::TextureManager::ReturnOnError::returnNullptr);
+                    std::shared_ptr<Texture> emissive = nullptr; // this->loadTexture(mat, model, i, aiTextureType_EMISSIVE, Manager::TextureManager::ReturnOnError::returnNullptr);
+                    std::shared_ptr<Texture> roughness = nullptr; // this->loadTexture(mat, model, i, aiTextureType_DIFFUSE_ROUGHNESS, Manager::TextureManager::ReturnOnError::returnNullptr);
 
-                            if ((!texStr.empty() && texStr[0] == '*') || true)
-                            {
-                                // Embedded texture
-                                const aiTexture* embeddedTex = model->GetEmbeddedTexture(texStr.c_str());
-                                std::cout << "INFO--  Loading embedded texture: " << texStr
-                                    << "\n------  For mesh: " << model->mMeshes[i]->mName.C_Str() << "\n";
-                                tex = m_textureManager->newTexture(embeddedTex, texStr);
-                                std::cout << '\n';
-                            }
-                            else
-                            {
-                                // External texture
-                                std::filesystem::path fullPath = modelDir / texStr;
-                                tex = m_textureManager->newTexture(fullPath.string().c_str(), GL_TEXTURE_2D);
-                            }
-                        }
+                    if (diffuse != m_textureManager->getInvalidTex())
+                    {
                         // pass empty string if no texture
-                        m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, tex));
+                        m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, diffuse, metallic, roughness, emissive));
                         std::cout << "INFO--  Loaded mesh: " << model->mMeshes[i]->mName.C_Str() << '\n'
                             << "------  with a valid diffuse texture\n\n";
                     }
-
-                    // pass empty string if no texture
-                    m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, m_textureManager->getInvalidTex()));
-                    std::cout << "INFO--  Loaded mesh: " << model->mMeshes[i]->mName.C_Str() << '\n'
-                        << "------  with an invalid texture(no diffuse tex found)\n\n";
+                    else
+                    {
+                        // pass empty string if no texture
+                        m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, m_textureManager->getInvalidTex(), metallic, roughness, emissive));
+                        std::cout << "INFO--  Loaded mesh: " << model->mMeshes[i]->mName.C_Str() << '\n'
+                            << "------  with an invalid texture(no diffuse tex found)\n\n";
+                    }
                 }
 
                 // this way around for indexing starting at 1 (m_localID of 0 indicates an invalid mesh)
                 sm_numModels++;
                 m_localID = sm_numModels;
             }
+        }
+
+        std::shared_ptr<Texture> Model::loadTexture(aiMaterial* mat, const aiScene* model, size_t meshNum, aiTextureType texType, Manager::TextureManager::ReturnOnError specification)
+        {
+            std::shared_ptr<Texture> tex = nullptr;
+            aiString texturePath;
+
+            if (mat->GetTextureCount(texType) > 0)
+            {
+                if (mat->GetTexture(texType, 0, &texturePath) == AI_SUCCESS)
+                {
+                    std::string texStr = texturePath.C_Str();
+
+                    // assume embedded texture because external ends
+                    // up being weird and not working
+                    const aiTexture* embeddedTex = model->GetEmbeddedTexture(texStr.c_str());
+                    std::cout << "INFO--  Loading embedded texture: " << texStr
+                        << "\n------  For mesh: " << model->mMeshes[meshNum]->mName.C_Str() << "\n";
+                    tex = m_textureManager->newTexture(embeddedTex, texStr, specification);
+                    std::cout << '\n';
+                }
+            }
+            if (tex)
+                return tex;
+            else
+                return (specification == Manager::TextureManager::ReturnOnError::returnNullptr) ? nullptr : m_textureManager->getInvalidTex();
         }
 
         Model::operator bool()

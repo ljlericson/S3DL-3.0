@@ -12,7 +12,7 @@
 #include "mesh.h"
 #include "shader.h"
 #include "camera.h"
-#include "../Manager/AssetManager.h"
+#include "../Manager/TextureManager.h"
 
 
 namespace Core
@@ -39,6 +39,9 @@ namespace Core
 		public:
 			std::string m_name;
 			glm::vec3 m_pos;
+		private:
+			std::shared_ptr<Texture> loadTexture(aiMaterial* mat, const aiScene* model, size_t meshNum, aiTextureType texType, Manager::TextureManager::ReturnOnError specification);
+
 		private:
 			static inline size_t sm_numModels = 0;
 			size_t m_localID = 0;

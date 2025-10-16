@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <print>
 #include <string>
 #include <fstream>
 #include <glad/glad.h>
@@ -29,10 +30,14 @@ namespace Core
 
             void unuse() const override;
 
-            void setUniform(const std::string& name, int value) const override;
+            void setUniform(const std::string& name, int value, UniformWarningType specification) const override;
 
-            void setUniform(const std::string& name, glm::mat4 value) const override;
-            
+            void setUniform(const std::string& name, glm::mat4 value, UniformWarningType specification) const override;
+
+            void setUniform(const std::string& name, float value, UniformWarningType specification) const override;
+
+            void setUniform(const std::string& name, glm::vec3 value, UniformWarningType specification) const override;
+    
             void reset() override;
 
             GLuint getID() const override;

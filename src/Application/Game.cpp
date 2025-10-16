@@ -149,6 +149,8 @@ void App::Application::ImGuiPreRender()
 	if (scrOpen)
 	{
 		ImGui::ColorPicker3("Screen Color", glm::value_ptr(m_scrColor), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
+		ImGui::InputFloat("Noise Level Input", &m_camera->shaderNoiseLevel);
+		ImGui::SliderFloat("Noise Level", &m_camera->shaderNoiseLevel, 0.0f, 10.0f);
 	}
 
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 6.0f));
@@ -248,10 +250,10 @@ void App::Application::OpenGlRender()
 
 	for (auto& model : m_models)
 	{
-		if ((model->getLocalID() % 2) == 0)
+		//if ((model->getLocalID() % 2) == 0)
 			model->Draw(m_shader2.get(), m_camera);
-		else
-			model->Draw(m_shader.get(), m_camera);
+		/*else
+			model->Draw(m_shader.get(), m_camera);*/
 	}
 }
 
@@ -307,7 +309,7 @@ App::Application::Application()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	ImGui::StyleColorsDark();
+	ImGui::StyleColorsLight();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	if (!ImGui_ImplOpenGL3_Init("#version 410")) 
 	{
@@ -323,12 +325,18 @@ App::Application::Application()
 	m_camera->update_matrix(0.1f, 10000.0f);
 
 	m_skyBox = new Core::OpenGlBackend::CubeMap(
-		"assets/skybox/right.jpg",
-		"assets/skybox/left.jpg",
-		"assets/skybox/top.jpg",
-		"assets/skybox/bottom.jpg",
-		"assets/skybox/front.jpg",
-		"assets/skybox/back.jpg"
+		"assets/skybox/px.png",
+		"assets/skybox/nx.png",
+		"assets/skybox/py.png",
+		"assets/skybox/ny.png",
+		"assets/skybox/pz.png",
+		"assets/skybox/nz.png"
+		//"assets/skybox/right.jpg",
+		//"assets/skybox/left.jpg",
+		//"assets/skybox/top.jpg",
+		//"assets/skybox/bottom.jpg",
+		//"assets/skybox/front.jpg",
+		//"assets/skybox/back.jpg"
 	);
 
 	m_shader = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
@@ -359,16 +367,18 @@ void App::Application::run()
 		{
 			m_source->play(1);
 		}
+		
+		// shader hot loading
 		if (m_assetManager->getShadManager()->hotReloadLoop<Core::OpenGlBackend::Shader>())
 		{
 			if (m_shader->getID() == 0)
 				m_shader = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl");
 
 			if (m_shader2->getID() == 0)
-				m_shader2 = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl"); // fixed
+				m_shader2 = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl");
 
 			if (m_skyShad->getID() == 0)
-				m_skyShad = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/skyBoxVert.glsl"); // fixed
+				m_skyShad = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/skyBoxVert.glsl");
 		}
 
 

@@ -21,10 +21,12 @@ namespace Core
             GLuint m_target;
             GLuint m_texUnit;
 
+            void flipHorizontally(unsigned char* bytes, int width, int height, int channels);
+
         public:
             Texture();
             Texture(const char* fpath, GLuint texUnit, GLuint target);
-            Texture(const aiTexture*, GLuint texUnit, const std::string& texSrc);
+            Texture(const aiTexture* tex, GLuint texUnit, const std::string& texSrc);
             ~Texture() override;
 
             void bind() const override;

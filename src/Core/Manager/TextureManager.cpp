@@ -20,7 +20,7 @@ namespace Core
 			}
 		}
 
-		std::shared_ptr<OpenGlBackend::Texture> TextureManager::newTexture(const aiTexture* texture, const std::string& texStr)
+		std::shared_ptr<OpenGlBackend::Texture> TextureManager::newTexture(const aiTexture* texture, const std::string& texStr, ReturnOnError specification)
 		{
 			// Check if texture already exists
 			if (m_textures.find(texStr) != m_textures.end())
@@ -35,7 +35,7 @@ namespace Core
 			auto tex = std::make_shared<OpenGlBackend::Texture>(texture, sm_numTextures + 1, texStr);
 			if (!tex->isValid())
 			{
-				return this->getInvalidTex();
+				return (specification == ReturnOnError::returnNullptr) ? nullptr : this->getInvalidTex();
 			}
 			else
 			{
@@ -46,7 +46,7 @@ namespace Core
 			return m_textures.at(texStr);
 		}
 
-		std::shared_ptr<OpenGlBackend::Texture> TextureManager::newTexture(const std::string& fpath, GLuint target)
+		std::shared_ptr<OpenGlBackend::Texture> TextureManager::newTexture(const std::string& fpath, GLuint target, ReturnOnError specification)
 		{
 			// Check if texture already exists
 			if (m_textures.find(fpath) != m_textures.end())
@@ -64,7 +64,7 @@ namespace Core
 			{
 				// if not return the static invalid
 				// texture
-				return this->getInvalidTex();
+				return (specification == ReturnOnError::returnNullptr) ? nullptr : this->getInvalidTex();
 			}
 			else
 			{

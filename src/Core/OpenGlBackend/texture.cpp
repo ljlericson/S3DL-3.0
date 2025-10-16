@@ -54,6 +54,8 @@ namespace Core
                 return;
             }
 
+            stbi_set_flip_vertically_on_load(true);
+
             // Generate texture object
             glGenTextures(1, &m_id);
             glActiveTexture(GL_TEXTURE0 + m_texUnit);
@@ -77,7 +79,7 @@ namespace Core
                     return;
                 }
 
-                GLenum format = (numColChan == 4) ? GL_RGBA : GL_RGB;
+                GLenum format = (numColChan == 1) ? GL_RED : ((numColChan == 4) ? GL_RGBA : GL_RGB);
                 glTexImage2D(m_target, 0, format, width, height, 0,
                     format, GL_UNSIGNED_BYTE, bytes);
 
@@ -105,6 +107,8 @@ namespace Core
             glTexParameteri(m_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             glBindTexture(m_target, 0);
+
+            stbi_set_flip_vertically_on_load(false);
         }
 
 
@@ -126,9 +130,9 @@ namespace Core
         {
             glUseProgram(shadProgram);
             GLint loc = glGetUniformLocation(shadProgram, uName);
-            if (loc == -1 && true) // sometimes disable this error because its annoyings
+            if (loc == -1 && false) // sometimes disable this error because its annoyings
             {
-                //std::cerr << "[ERROR]: Texture uniform not found!\n";
+                std::cerr << "[ERROR]: Texture uniform not found!\n";
             }
             else
             {
@@ -161,6 +165,20 @@ namespace Core
         Texture::~Texture()
         {
             _delte();
+        }
+
+        void Texture::flipHorizontally(unsigned char* bytes, int width, int height, int channels)
+        {
+                std::vector<unsigned char> flipped(width * height * channels);
+
+                for (int y = 0; y < height; ++y) {
+                    memcpy(&flipped[y * width * channels],
+                        &bytes[(height - 1 - y) * width * channels],
+                        width * channels);
+                }
+
+                glTexImage2D(m_target, 0, GL_RGBA, width, height, 0,
+                    GL_BGRA, GL_UNSIGNED_BYTE, flipped.data());
         }
     }
 }

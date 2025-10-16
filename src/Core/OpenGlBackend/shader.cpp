@@ -100,16 +100,88 @@ namespace Core
             }
         }
 
-        void Shader::setUniform(const std::string& name, int value) const
+        void Shader::setUniform(const std::string& name, int value, UniformWarningType specification) const
         {
-            if (m_linked && m_init)
-                glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+            switch (specification)
+            {
+            case Shader::UniformWarningType::doNotGiveWarning:
+                if (m_linked && m_init)
+                    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+                break;
+            case Shader::UniformWarningType::giveWarning:
+                if (m_linked && m_init)
+                {
+                    GLuint loc = glGetUniformLocation(m_id, name.c_str());
+                    if (loc != 0)
+                        glUniform1i(loc, value);
+                    else
+                        std::println("WARNING: Could not find int uniform GLShader::setUniform");
+                }
+                break;
+            }
         }
 
-        void Shader::setUniform(const std::string& name, glm::mat4 value) const
+        void Shader::setUniform(const std::string& name, glm::mat4 value, UniformWarningType specification) const
         {
-            if (m_linked && m_init)
-                glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+            switch (specification)
+            {
+            case Shader::UniformWarningType::doNotGiveWarning:
+                if (m_linked && m_init)
+                    glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+                break;
+            case Shader::UniformWarningType::giveWarning:
+                if (m_linked && m_init)
+                {
+                    GLuint loc = glGetUniformLocation(m_id, name.c_str());
+                    if (loc != 0)
+                        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+                    else
+                        std::println("WARNING: Could not find mat4 uniform GLShader::setUniform");
+                }
+                break;
+            }
+        }
+
+        void Shader::setUniform(const std::string& name, float value, UniformWarningType specification) const
+        {
+            switch (specification)
+            {
+            case Shader::UniformWarningType::doNotGiveWarning:
+                if (m_linked && m_init)
+                    glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
+                break;
+            case Shader::UniformWarningType::giveWarning:
+                if (m_linked && m_init)
+                {
+                    GLuint loc = glGetUniformLocation(m_id, name.c_str());
+                    if (loc != 0)
+                        glUniform1f(loc, value);
+                    else
+                        std::println("WARNING: Could not find float uniform GLShader::setUniform");
+                }
+                break;
+            }
+        }
+
+        void Shader::setUniform(const std::string& name, glm::vec3 value, UniformWarningType specification) const
+        {
+            switch (specification)
+            {
+            case Shader::UniformWarningType::doNotGiveWarning:
+                if (m_linked && m_init)
+                    glUniform3f(glGetUniformLocation(m_id, name.c_str()), value.x, value.y, value.z);
+                break;
+            case Shader::UniformWarningType::giveWarning:
+                if (m_linked && m_init)
+                {
+                    GLuint loc = glGetUniformLocation(m_id, name.c_str());
+                    if (loc != 0)
+                        glUniform3f(loc, value.x, value.y, value.z);
+                    else
+                        std::println("WARNING: Could not find float uniform GLShader::setUniform");
+                }
+                break;
+            }
         }
 
         void Shader::use() const

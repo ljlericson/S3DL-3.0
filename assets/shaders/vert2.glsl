@@ -9,10 +9,12 @@ uniform mat4 camMat;
 
 out vec2 TexCoord;
 out vec3 Normal;
+out vec3 FragPos;
 
 void main() 
 {
     gl_Position = camMat * model * vec4(aPos, 1.0);
+    FragPos = vec3(model * vec4(aPos, 1.0));
     TexCoord = aTexCoord + vec2(1.0f);
     Normal = aNormal;
 }
