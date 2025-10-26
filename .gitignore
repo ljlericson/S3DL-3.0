@@ -11,9 +11,14 @@ imgui.ini
 # VS Code settings
 .vscode/
 
-# build
+# --- BUILD FOLDERS ---
+
+# vs build
 build/
+# GNU build
 buildGNU/
+
+# --- LARGE ASSETS ---
 
 # some assets
 assets/audio/
