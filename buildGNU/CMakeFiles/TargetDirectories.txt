@@ -1,3 +1,0 @@
-C:/Users/Admin/Documents/NewProjects/s3glr/buildGNU/CMakeFiles/s3glr.dir
-C:/Users/Admin/Documents/NewProjects/s3glr/buildGNU/CMakeFiles/edit_cache.dir
-C:/Users/Admin/Documents/NewProjects/s3glr/buildGNU/CMakeFiles/rebuild_cache.dir
