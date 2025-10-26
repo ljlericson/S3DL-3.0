@@ -13,6 +13,7 @@ imgui.ini
 
 # build
 build/
+buildGNU/
 
 # some assets
 assets/audio/
