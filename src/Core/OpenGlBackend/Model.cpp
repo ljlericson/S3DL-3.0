@@ -65,7 +65,7 @@ namespace Core
                     std::shared_ptr<Texture> emissive = nullptr; // this->loadTexture(mat, model, i, aiTextureType_EMISSIVE, Manager::TextureManager::ReturnOnError::returnNullptr);
                     std::shared_ptr<Texture> roughness = nullptr; // this->loadTexture(mat, model, i, aiTextureType_DIFFUSE_ROUGHNESS, Manager::TextureManager::ReturnOnError::returnNullptr);
 
-                    if (diffuse != m_textureManager->getInvalidTex())
+                    if (diffuse != m_textureManager->getInvalidTex<OpenGlBackend::Texture>())
                     {
                         // pass empty string if no texture
                         m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, diffuse, metallic, roughness, emissive));
@@ -75,7 +75,7 @@ namespace Core
                     else
                     {
                         // pass empty string if no texture
-                        m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, m_textureManager->getInvalidTex(), metallic, roughness, emissive));
+                        m_childMeshes.push_back(std::make_unique<Mesh>(vertData, indiData, m_textureManager->getInvalidTex<OpenGlBackend::Texture>(), metallic, roughness, emissive));
                         std::cout << "INFO--  Loaded mesh: " << model->mMeshes[i]->mName.C_Str() << '\n'
                             << "------  with an invalid texture(no diffuse tex found)\n\n";
                     }
@@ -103,14 +103,14 @@ namespace Core
                     const aiTexture* embeddedTex = model->GetEmbeddedTexture(texStr.c_str());
                     std::cout << "INFO--  Loading embedded texture: " << texStr
                         << "\n------  For mesh: " << model->mMeshes[meshNum]->mName.C_Str() << "\n";
-                    tex = m_textureManager->newTexture(embeddedTex, texStr, specification);
+                    tex = m_textureManager->newTexture<OpenGlBackend::Texture>(embeddedTex, texStr, specification);
                     std::cout << '\n';
                 }
             }
             if (tex)
                 return tex;
             else
-                return (specification == Manager::TextureManager::ReturnOnError::returnNullptr) ? nullptr : m_textureManager->getInvalidTex();
+                return (specification == Manager::TextureManager::ReturnOnError::returnNullptr) ? nullptr : m_textureManager->getInvalidTex<OpenGlBackend::Texture>();
         }
 
         Model::operator bool()

@@ -1,9 +1,16 @@
+#define GLFW_EXPOSE_NATIVE_WIN32
 #include "Utils.h"
+
+#define IDI_MYICON 101
 
 int Util::width = 1280,
 	Util::height = 720;
 
 static GLenum s_glErrCache = 0;
+
+static double s_lastTime = 0.0;
+static double s_fps = 0.0;
+static int s_nbFrames = 0;
 
 glm::ivec2 Util::viewportPos = glm::ivec2{ 0 };
 
@@ -54,6 +61,54 @@ std::string Util::getFpathFromSelectionWindow()
 	}
 }
 
+void Util::setWindowIconToICO()
+{
+	GLFWwindow* window = glfwGetCurrentContext();
+	if (!window)
+		return;
+
+	HWND hwnd = glfwGetWin32Window(window);
+	if (!hwnd)
+		return;
+
+	// Get this exe's HINSTANCE
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+
+	// Load large and small versions of the icon
+	HICON hIconLarge = (HICON)LoadImage(
+		hInstance,
+		MAKEINTRESOURCE(IDI_MYICON),
+		IMAGE_ICON,
+		GetSystemMetrics(SM_CXICON),   // default large icon size
+		GetSystemMetrics(SM_CYICON),
+		LR_DEFAULTCOLOR
+	);
+
+	HICON hIconSmall = (HICON)LoadImage(
+		hInstance,
+		MAKEINTRESOURCE(IDI_MYICON),
+		IMAGE_ICON,
+		GetSystemMetrics(SM_CXSMICON), // default small icon size
+		GetSystemMetrics(SM_CYSMICON),
+		LR_DEFAULTCOLOR
+	);
+
+	if (!hIconLarge && !hIconSmall)
+		return; // nothing loaded, bail out
+
+	// Apply icons to this window
+	if (hIconLarge)
+		SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIconLarge);
+	if (hIconSmall)
+		SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIconSmall);
+
+	// Also update the window class icons (affects dialogs, etc.)
+	if (hIconLarge)
+		SetClassLongPtr(hwnd, GCLP_HICON, (LONG_PTR)hIconLarge);
+	if (hIconSmall)
+		SetClassLongPtr(hwnd, GCLP_HICONSM, (LONG_PTR)hIconSmall);
+}
+
 bool Util::checkGlErrors()
 {
 	GLenum err = glGetError();
@@ -88,4 +143,24 @@ std::string Util::getGlErrAfterCheck()
 	default:
 		return "UTIL ERROR: OpenGL error is not registered\n";
 	}
+}
+
+
+void Util::calcFps()
+{
+	double currentTime = glfwGetTime();
+	s_nbFrames++;
+
+	if (currentTime - s_lastTime >= 1.0) 
+	{ 
+		s_fps = (double)s_nbFrames / (currentTime - s_lastTime);
+		// Reset for next second
+		s_nbFrames = 0;
+		s_lastTime = currentTime;
+	}
+}
+
+double Util::getFps()
+{
+	return s_fps;
 }

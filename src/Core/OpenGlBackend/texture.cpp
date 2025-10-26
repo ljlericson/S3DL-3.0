@@ -5,7 +5,8 @@ namespace Core
     namespace OpenGlBackend
     {
         Texture::Texture()
-            : m_id(0), m_texUnit(INT_MAX), m_target(0) {}
+            : m_id(0), m_texUnit(INT_MAX), m_target(0) {
+        }
 
         Texture::Texture(const char* fpath, GLuint texUnit, GLuint target)
             : m_texUnit(texUnit), m_target(target), m_id(0)
@@ -165,20 +166,6 @@ namespace Core
         Texture::~Texture()
         {
             _delte();
-        }
-
-        void Texture::flipHorizontally(unsigned char* bytes, int width, int height, int channels)
-        {
-                std::vector<unsigned char> flipped(width * height * channels);
-
-                for (int y = 0; y < height; ++y) {
-                    memcpy(&flipped[y * width * channels],
-                        &bytes[(height - 1 - y) * width * channels],
-                        width * channels);
-                }
-
-                glTexImage2D(m_target, 0, GL_RGBA, width, height, 0,
-                    GL_BGRA, GL_UNSIGNED_BYTE, flipped.data());
         }
     }
 }

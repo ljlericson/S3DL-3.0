@@ -59,6 +59,12 @@ file(GLOB_RECURSE S3GLR_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.inl"
 )
 target_sources(s3glr PRIVATE ${S3GLR_SOURCES})
+if(MSVC)
+    target_sources(s3glr PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/icon.rc)
+elseif(MINGW)
+    enable_language(RC)
+    target_sources(s3glr PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/icon.rc)
+endif()
 
 # Includes
 target_include_directories(s3glr PRIVATE
@@ -101,5 +107,8 @@ endif()
 
 # --- Visual Studio niceties ---
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT s3glr)
+set_target_properties(s3glr PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+)
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" PREFIX "Source Files" FILES ${S3GLR_SOURCES})
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

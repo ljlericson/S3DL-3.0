@@ -21,8 +21,6 @@ namespace Core
             GLuint m_target;
             GLuint m_texUnit;
 
-            void flipHorizontally(unsigned char* bytes, int width, int height, int channels);
-
         public:
             Texture();
             Texture(const char* fpath, GLuint texUnit, GLuint target);

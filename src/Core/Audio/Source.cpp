@@ -20,9 +20,9 @@ namespace Core
                 alSource3f(m_id, AL_DIRECTION, 0.0f, 0.0f, 0.0f);
                 alSource3f(m_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
                 alSourcei(m_id, AL_SOURCE_RELATIVE, AL_FALSE);
-                alSourcef(m_id, AL_ROLLOFF_FACTOR, 1.0f);
-                alSourcef(m_id, AL_REFERENCE_DISTANCE, 5.0f);  // Distance at which volume is full
-                alSourcef(m_id, AL_MAX_DISTANCE, 100.0f);      // Distance after which volume stays constant           
+                alSourcef(m_id, AL_ROLLOFF_FACTOR, 0.1f);
+                alSourcef(m_id, AL_REFERENCE_DISTANCE, 15.0f);  // Distance at which volume is full
+                alSourcef(m_id, AL_MAX_DISTANCE, 1000.0f);      // Distance after which volume stays constant           
             }
         }
 
@@ -48,8 +48,9 @@ namespace Core
 
                 // check for errors
                 ALenum error = alGetError();
-                if (error != AL_NO_ERROR) {
-                    std::print("OpenAL error: {}\n", error);
+                if (error != AL_NO_ERROR)
+                {
+                    std::cout << "OpenAL error: " << error << '\n';
                 }
             }
             else

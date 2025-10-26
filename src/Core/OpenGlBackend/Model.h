@@ -24,6 +24,12 @@ namespace Core
 		public:
 			Model(Manager::TextureManager* textureManager, const aiScene* model, const std::string& path);
 
+			Model(const Model&) = delete;
+			Model& operator=(const Model&) = delete;
+
+			Model(Model&&) noexcept = default;
+			Model& operator=(Model&&) noexcept = default;
+
 			~Model();
 
 			// make error checking easy and fairly readable

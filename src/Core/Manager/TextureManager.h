@@ -1,18 +1,16 @@
 #pragma once
 #include <memory>
+#include <type_traits>
 #include <unordered_map>
 #include <assimp/scene.h>
 #include <assert.h>
+#include "../BasicBackend/texture.h"
 #include "../OpenGlBackend/texture.h"
 
 namespace Core
 {
 	namespace Manager
 	{
-		// Manager for OpenGlBackend, but theoretically I could swith out
-		// the opengl texture implementation with another but I won't
-		// anytime soon
-
 		class TextureManager
 		{
 		public:
@@ -25,19 +23,24 @@ namespace Core
 			TextureManager();
 			~TextureManager();
 
-			std::shared_ptr<OpenGlBackend::Texture> newTexture(const aiTexture* texture, const std::string& texStr, ReturnOnError specification);
-			std::shared_ptr<OpenGlBackend::Texture> newTexture(const std::string& fpath, GLuint target, ReturnOnError specification);
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicTexture, T>
+			std::shared_ptr<T> newTexture(const aiTexture* texture, const std::string& texStr, ReturnOnError specification);
 
-			std::shared_ptr<OpenGlBackend::Texture> getInvalidTex() const;
-			GLuint getNumTextures() const;
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicTexture, T>
+			std::shared_ptr<T> newTexture(const std::string& fpath, uint32_t target, ReturnOnError specification);
+
+			template<typename T> requires std::is_base_of_v<BasicBackend::BasicTexture, T>
+			std::shared_ptr<T> getInvalidTex() const;
+
+			uint32_t getNumTextures() const;
 			size_t getNumTexManagers() const;
 
 		private:
 			static inline uint32_t sm_numTextures = 0;
 			static inline size_t sm_numActiveTexManagers = 0;
-			static inline std::shared_ptr<OpenGlBackend::Texture> smp_invalidTex = nullptr;
+			static inline std::shared_ptr<BasicBackend::BasicTexture> smp_invalidTex = nullptr;
 			// valid textures
-			std::unordered_map<std::string, std::shared_ptr<OpenGlBackend::Texture>> m_textures;
+			std::unordered_map<std::string, std::shared_ptr<BasicBackend::BasicTexture>> m_textures;
 		};
 	}
 }

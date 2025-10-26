@@ -108,8 +108,10 @@ void App::Application::ImGuiPreRender()
 	bool show_demo_window = true;
 	static int current_item = 0;
 	const char* items[] = { "Option 1", "Option 2", "Option 3" };
-
 	ImGui::Begin("Hello", &show_demo_window, ImGuiWindowFlags_MenuBar);
+	ImGui::Text("ljl::Stat control sample avg: %f", m_fpsControlSamle.getMean());
+	ImGui::Text("ljl::Stat Fps sampling result: %f", m_statResult);
+	ImGui::Text("FPS: %f", Util::getFps());
 	//getImGuiStyle();
 	if (ImGui::BeginMenuBar())
 	{
@@ -122,9 +124,9 @@ void App::Application::ImGuiPreRender()
 			}
 			ImGui::EndMenu();
 		}
-		if (ImGui::Button("Print Hello World"))
+		if (ImGui::Button("Recapture control sample"))
 		{
-			std::cout << "Hello World Again\n";
+			m_reTakeControl = true;
 		}
 		ImGui::EndMenuBar();
 	}
@@ -236,6 +238,89 @@ void App::Application::ImGuiRender()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void App::Application::sampleFps()
+{
+	constexpr float controlDurationMs = 5000.0f;
+	constexpr float testDelayMs = 3000.0f; // wait after control ends
+	constexpr float testDurationMs = 3000.0f;
+	constexpr float sampleIntervalMs = 100.0f;
+
+	static float lastSampleTime = 0.0f;
+
+	switch (m_sampleType)
+	{
+	case SampleType::control:
+		if (!m_sampling) 
+		{
+			std::cout << "\n--- CAPTURING CONTROL SAMPLE ---\n";
+			m_fpsSampleTimer.reset();
+			lastSampleTime = 0.0f;
+			m_sampling = true;
+		}
+		else 
+		{
+			float t = m_fpsSampleTimer.sinceStarted();
+			if (t - lastSampleTime >= sampleIntervalMs) 
+			{
+				m_fpsControlSamle << Util::getFps();
+				lastSampleTime = t;
+			}
+
+			if (t >= controlDurationMs) 
+			{
+				m_sampling = false;
+				m_sampleType = SampleType::test;
+				m_fpsSampleTimer.reset();
+				std::cout <<   "=== CONTROL SAMPLE COMPLETE  ===\n"
+					<< "MEAN: " << m_fpsControlSamle.getMean() << '\n'
+					<< "VAR : " << m_fpsControlSamle.getVar() << '\n';
+			}
+		}
+		break;
+
+	case SampleType::test:
+		if (m_reTakeControl)
+		{
+			m_sampling = false;
+			m_reTakeControl = false;
+			m_fpsTestSamle = {};
+			m_fpsControlSamle = {};
+			m_sampleType = SampleType::control;
+			break;
+		}
+		float t = m_fpsSampleTimer.sinceStarted();
+
+		if (!m_sampling && t >= testDelayMs) 
+		{
+			m_fpsSampleTimer.reset();
+			lastSampleTime = 0.0f;
+			m_sampling = true;
+		}
+		else if (m_sampling) 
+		{
+			float t2 = m_fpsSampleTimer.sinceStarted();
+			if (t2 - lastSampleTime >= sampleIntervalMs) 
+			{
+				m_fpsTestSamle << Util::getFps();
+				lastSampleTime = t2;
+			}
+
+			if (t2 >= testDurationMs) 
+			{
+				m_sampling = false;
+				m_statResult = ljl::Stat::HY_getCriticalSignificanLevel<ljl::Stat::ContinuosSample>(
+					ljl::Stat::HypothTestType::hasChanged,
+					ljl::Stat::PopVarianceEstimationType::usePopulation,
+					m_fpsControlSamle,
+					m_fpsTestSamle);
+
+				m_fpsTestSamle = {};
+			}
+		}
+		break;
+	}
+}
+
 void App::Application::OpenGlPreRender()
 {
 	Util::updateWindowSize(m_window);
@@ -251,9 +336,9 @@ void App::Application::OpenGlRender()
 	for (auto& model : m_models)
 	{
 		//if ((model->getLocalID() % 2) == 0)
-			model->Draw(m_shader2.get(), m_camera);
-		/*else
-			model->Draw(m_shader.get(), m_camera);*/
+			//model->Draw(m_shader2.get(), m_camera);
+		//else
+			model->Draw(m_shader.get(), m_camera);
 	}
 }
 
@@ -318,6 +403,8 @@ App::Application::Application()
 	}
 	//m_customFont = io.Fonts->AddFontFromFileTTF("assets/fonts/western.ttf", 16.0f);
 
+	Util::setWindowIconToICO();
+
 	m_assetManager = new Core::Manager::AssetManager{};
 
 	m_camera = new Core::OpenGlBackend::Camera(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -381,6 +468,11 @@ void App::Application::run()
 				m_skyShad = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/skyBoxVert.glsl");
 		}
 
+		m_assetManager->getModelManager()->loop();
+
+		Util::calcFps();
+
+		sampleFps();
 
 		OpenGlPreRender();
 

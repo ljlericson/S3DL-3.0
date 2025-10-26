@@ -10,7 +10,8 @@ void Util::Timer::reset()
 
 float Util::Timer::sinceStarted() const
 {
-    return float(std::chrono::duration(std::chrono::high_resolution_clock::now() - m_start).count());
+    using namespace std::chrono;
+    return duration_cast<duration<float, std::milli>>(high_resolution_clock::now() - m_start).count();
 }
 
 Util::Timer Util::Timer::operator=(const Timer& other)

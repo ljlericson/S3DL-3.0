@@ -72,7 +72,7 @@ namespace Core
 			}
 			else
 			{
-				std::print("INFO: Found existing shader...");
+				std::cout << "INFO: Found existing shader...\n";
 				return std::dynamic_pointer_cast<T>(m_shaders.at(fPathVert));
 			}
 		}
@@ -280,7 +280,7 @@ namespace Core
 			{
 				for (const std::string& key : m_shadsToReload)
 				{
-					std::print("\nDETECTED SHADER CHANGE TO {}\n", key);
+					std::cout << "\nDETECTED SHADER CHANGE TO" << key << '\n';
 					this->reload<T>(key);
 					m_doHotReloads = true;
 					reloadedOne = true;

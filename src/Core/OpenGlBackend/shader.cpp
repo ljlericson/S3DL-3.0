@@ -115,7 +115,7 @@ namespace Core
                     if (loc != 0)
                         glUniform1i(loc, value);
                     else
-                        std::println("WARNING: Could not find int uniform GLShader::setUniform");
+                        std::cout << "WARNING: Could not find int uniform GLShader::setUniform\n";
                 }
                 break;
             }
@@ -136,7 +136,7 @@ namespace Core
                     if (loc != 0)
                         glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
                     else
-                        std::println("WARNING: Could not find mat4 uniform GLShader::setUniform");
+                        std::cout << "WARNING: Could not find mat4 uniform GLShader::setUniform\n";
                 }
                 break;
             }
@@ -157,7 +157,7 @@ namespace Core
                     if (loc != 0)
                         glUniform1f(loc, value);
                     else
-                        std::println("WARNING: Could not find float uniform GLShader::setUniform");
+                        std::cout << "WARNING: Could not find float uniform GLShader::setUniform\n";
                 }
                 break;
             }
@@ -178,7 +178,7 @@ namespace Core
                     if (loc != 0)
                         glUniform3f(loc, value.x, value.y, value.z);
                     else
-                        std::println("WARNING: Could not find float uniform GLShader::setUniform");
+                        std::cout << "WARNING: Could not find float uniform GLShader::setUniform\n";
                 }
                 break;
             }

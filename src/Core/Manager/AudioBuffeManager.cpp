@@ -31,7 +31,7 @@ namespace Core
 			}
 			else
 			{
-				std::print("INFO: Found existing audio buffer...");
+				std::cout << "INFO: Found existing audio buffer...\n";
 				ALuint bufferID = m_buffers.at(fpathStr)->id;
 				m_refCounts.at(fpathStr)++;
 				return bufferID;
@@ -50,7 +50,7 @@ namespace Core
 					m_buffers.erase(key);
 				}
 			}
-			else std::println("WARNING: No buffer found with given ID (AudioBufManager::removeReference");
+			else std::cout << "WARNING: No buffer found with given ID (AudioBufManager::removeReference\n";
 		}
 
 		void AudioBufferManager::clear()
@@ -68,7 +68,7 @@ namespace Core
 			pcmData = drwav_open_file_and_read_pcm_frames_s16(fpath, &channels, &sampleRate, &totalPCMframeCount, nullptr);
 			if (!pcmData)
 			{
-				std::println("ERROR: Could not load pcm audio data: {}", fpath);
+				std::cout << "ERROR: Could not load pcm audio data: " <<  fpath << '\n';
 			}
 			else
 			{

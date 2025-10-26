@@ -7,6 +7,7 @@
 #include <array>
 #include <thread>
 #include <chrono>
+#include <utility>
 // nGL libraries
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/glad.h>
@@ -18,6 +19,8 @@
 // src files
 #include "../Utils/Utils.h"
 #include "../Utils/Timer.h"
+#include "../Vender/ljlStat/src/include/ljl/Stat.hpp"
+
 #include "../Core/Audio/Listener.h"
 #include "../Core/Audio/Source.h"
 #include "../Core/OpenGlBackend/Model.h"
@@ -43,19 +46,37 @@ namespace App
         ~Application();
 
     private:
+        enum class SampleType
+        {
+            control,
+            test
+        };
+
+    private:
         void ImGuiPreRender();
         void ImGuiRender();
         void getImGuiStyle();
         void OpenGlPreRender();
         void OpenGlRender();
         void OpenGlPostRender();
+        // fps sampling
+        void sampleFps();
+
         GLFWwindow* m_window;
         ImFont* m_customFont;
+
+        ljl::Stat::ContinuosSample m_fpsTestSamle;
+        ljl::Stat::ContinuosSample m_fpsControlSamle;
+        Util::Timer m_fpsSampleTimer;
+        SampleType m_sampleType = SampleType::control;
+        bool m_sampling = false;
+        bool m_reTakeControl = false;
 
         Core::OpenGlBackend::Camera* m_camera = nullptr;
         Core::OpenGlBackend::CubeMap* m_skyBox = nullptr;
         //Core::OpenGlBackend::FBO* m_scrFBO = nullptr;
         Core::Manager::AssetManager* m_assetManager = nullptr;
+        double m_statResult = -1.0;
 
         std::shared_ptr<Core::OpenGlBackend::Shader> m_shader;
         std::shared_ptr<Core::OpenGlBackend::Shader> m_shader2;
