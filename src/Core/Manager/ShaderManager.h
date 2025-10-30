@@ -10,6 +10,7 @@
 #include <thread>
 #include <chrono>
 #include <sys/stat.h>
+#include <vector>
 // src file
 #include "../BasicBackend/shader.h"
 #include "../OpenGlBackend/shader.h"

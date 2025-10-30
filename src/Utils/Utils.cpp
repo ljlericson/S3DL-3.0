@@ -33,6 +33,7 @@ void Util::updateWindowSize(GLFWwindow* window)
 
 std::string Util::getFpathFromSelectionWindow()
 {
+    /*
 	OPENFILENAME ofn;       // Common dialog box structure
 	char szFile[260];       // Buffer for file name
 
@@ -59,10 +60,15 @@ std::string Util::getFpathFromSelectionWindow()
 		UTIL_ERR_LOG("No file selected\n");
 		return "";
 	}
+    */
+    std::cout << "ERROR: Not supported on Mac\n";
+    std::cin.get();
+    return "";
 }
 
 void Util::setWindowIconToICO()
 {
+    /*
 	GLFWwindow* window = glfwGetCurrentContext();
 	if (!window)
 		return;
@@ -107,6 +113,7 @@ void Util::setWindowIconToICO()
 		SetClassLongPtr(hwnd, GCLP_HICON, (LONG_PTR)hIconLarge);
 	if (hIconSmall)
 		SetClassLongPtr(hwnd, GCLP_HICONSM, (LONG_PTR)hIconSmall);
+    */
 }
 
 bool Util::checkGlErrors()

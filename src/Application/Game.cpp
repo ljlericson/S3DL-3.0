@@ -7,16 +7,16 @@
 #include "../Core/OpenGlBackend/Shader.h"
 
 
-
+ 
 void App::Application::getImGuiStyle()
-{
-	// Deep Dark style by janekb04 from ImThemes
-	ImGuiStyle& style = ImGui::GetStyle();
-
-	style.Alpha = 1.0f;
-	style.DisabledAlpha = 0.6000000238418579f;
-	style.WindowPadding = ImVec2(8.0f, 8.0f);
-	style.WindowRounding = 7.0f;
+ {
+ 	// Deep Dark style by janekb04 from ImThemes
+ 	ImGuiStyle& style = ImGui::GetStyle();
+ 
+ 	style.Alpha = 1.0f;
+ 	style.DisabledAlpha = 0.6000000238418579f;
+ 	style.WindowPadding = ImVec2(8.0f, 8.0f);
+   	style.WindowRounding = 7.0f;
 	style.WindowBorderSize = 1.0f;
 	style.WindowMinSize = ImVec2(32.0f, 32.0f);
 	style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
@@ -430,8 +430,10 @@ App::Application::Application()
 	m_shader2 = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl", "assets/shaders/frag2.glsl");
 	m_skyShad = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/skyBoxVert.glsl", "assets/shaders/skyBoxFrag.glsl");
 
-
-	m_listener = new Core::Audio::Listener(glm::vec3(0.0f));
+    m_models.push_back(m_assetManager->getModelManager()->newModelOrGetModel(m_assetManager->getTextureManager(), "assets/obj/glock.fbx"));
+    m_models.push_back(m_assetManager->getModelManager()->newModelOrGetModel(m_assetManager->getTextureManager(), "assets/obj/COOL_CITY.fbx"));
+    
+    m_listener = new Core::Audio::Listener(glm::vec3(0.0f));
 
 	//m_scrFBO = new Render::FBO{ "assets/shaders/frameBufferVert.glsl", "assets/shaders/frameBufferFrag.glsl" };
 	//if (!m_scrFBO)
@@ -440,7 +442,7 @@ App::Application::Application()
 
 void App::Application::run()
 {
-	m_assetManager->getShadManager()->doHotReloads(true, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
+	// m_assetManager->getShadManager()->doHotReloads(true, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
 
     while(!glfwWindowShouldClose(m_window))
     {
@@ -456,7 +458,7 @@ void App::Application::run()
 		}
 		
 		// shader hot loading
-		if (m_assetManager->getShadManager()->hotReloadLoop<Core::OpenGlBackend::Shader>())
+		if (false) //m_assetManager->getShadManager()->hotReloadLoop<Core::OpenGlBackend::Shader>())
 		{
 			if (m_shader->getID() == 0)
 				m_shader = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl");
@@ -489,7 +491,7 @@ void App::Application::run()
         glfwPollEvents();
     }
 
-	m_assetManager->getShadManager()->doHotReloads(false, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
+	// m_assetManager->getShadManager()->doHotReloads(false, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
 }
 
 App::Application::~Application()

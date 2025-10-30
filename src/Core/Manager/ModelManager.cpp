@@ -11,7 +11,7 @@ namespace Core
 			{
 				Assimp::Importer importer;
 				const aiScene* scene = importer.ReadFile(
-					"assets/no_model.fbx",
+					fpath.c_str(),
 					//aiProcess_ConvertToLeftHanded | // somehow flips the model
 					aiProcess_JoinIdenticalVertices |
 					aiProcess_Triangulate |
@@ -31,7 +31,7 @@ namespace Core
 							fpath,
 							std::move(model)
 							});
-						m_loadThread = new std::thread{ &Core::Manager::ModelManager::loadSceneThread, this, textureManager, fpath };
+						// m_loadThread = new std::thread{ &Core::Manager::ModelManager::loadSceneThread, this, textureManager, fpath };
 						return m_models.at(fpath);
 					}
 					else { std::cout << "FATAL ERROR: Model Failed to initialise or link\n"; return m_models.at(std::string("")); }
