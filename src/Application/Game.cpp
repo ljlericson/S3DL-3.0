@@ -350,6 +350,11 @@ void App::Application::OpenGlPostRender()
 App::Application::Application()
 	: m_scrColor{ 169.0f / 255.0f, 222.0f / 255.0f, 250.0f / 255.0f }
 {
+#ifdef __APPLE__
+	std::filesystem::path newDir = "/Users/linus/Desktop/S3DL-3.0/";
+	std::filesystem::current_path(newDir);
+#endif
+
 	if (glfwInit() != GLFW_TRUE)
 	{
 		const char* description;

@@ -70,6 +70,7 @@ endif()
 target_include_directories(s3glr PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${Stb_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vender/Metal
 )
 
 # Defines
@@ -77,17 +78,36 @@ target_compile_definitions(s3glr PRIVATE
     MY_TEST_DEFINE
 )
 
-# --- Link libraries ---
-target_link_libraries(s3glr PRIVATE
-    glad::glad
-    imgui::imgui
-    OpenAL::OpenAL
-    glm::glm
-    nlohmann_json::nlohmann_json
-    glfw
-    Stb::Stb
-    assimp::assimp
-)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    # --- Link libraries ---
+    message("----INFO: BUILDING FOR WINDOWS----")
+    target_link_libraries(s3glr PRIVATE
+        glad::glad
+        imgui::imgui
+        OpenAL::OpenAL
+        glm::glm
+        nlohmann_json::nlohmann_json
+        glfw
+        Stb::Stb
+        assimp::assimp
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    # --- Link libraries --- 
+    message("----INFO: BUILDING FOR MAC----")
+    target_link_libraries(s3glr PRIVATE
+        glad::glad
+        imgui::imgui
+        OpenAL::OpenAL
+        glm::glm
+        nlohmann_json::nlohmann_json
+        glfw
+        Stb::Stb
+        assimp::assimp
+        "-framework Metal"
+        "-framework QuartzCore"
+        "-framework Cocoa"
+    )
+endif()
 
 # --- Compiler warnings ---
 if(MSVC)
