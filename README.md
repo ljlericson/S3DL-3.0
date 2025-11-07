@@ -21,8 +21,6 @@ ___
 
 ## How To Build	
 
-__IMPORTANT: THIS PROJECT IS CURRENTLY IN A WORK IN PROGRESS STATE, A LOT OF THINGS ARE BROKEN__
-
 Please note this is a __windows only project__. 
 1. Clone the repository with `git clone https://github.com/ljlericson/S3DL-3.0 --recurse-submodules`
 2. Navigate into the vcpkg dir and run `bootstrap-vcpkg.bat`
