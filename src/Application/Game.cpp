@@ -423,20 +423,17 @@ App::Application::Application()
 		"assets/skybox/ny.png",
 		"assets/skybox/pz.png",
 		"assets/skybox/nz.png"
-		//"assets/skybox/right.jpg",
-		//"assets/skybox/left.jpg",
-		//"assets/skybox/top.jpg",
-		//"assets/skybox/bottom.jpg",
-		//"assets/skybox/front.jpg",
-		//"assets/skybox/back.jpg"
+		/*"assets/skybox/right.jpg",
+		"assets/skybox/left.jpg",
+		"assets/skybox/top.jpg",
+		"assets/skybox/bottom.jpg",
+		"assets/skybox/front.jpg",
+		"assets/skybox/back.jpg"*/
 	);
 
 	m_shader = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
 	m_shader2 = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/vert2.glsl", "assets/shaders/frag2.glsl");
 	m_skyShad = m_assetManager->getShadManager()->newShaderOrGetShader<Core::OpenGlBackend::Shader>("assets/shaders/skyBoxVert.glsl", "assets/shaders/skyBoxFrag.glsl");
-
-    m_models.push_back(m_assetManager->getModelManager()->newModelOrGetModel(m_assetManager->getTextureManager(), "assets/obj/glock.fbx"));
-    m_models.push_back(m_assetManager->getModelManager()->newModelOrGetModel(m_assetManager->getTextureManager(), "assets/obj/COOL_CITY.fbx"));
     
     m_listener = new Core::Audio::Listener(glm::vec3(0.0f));
 
@@ -447,7 +444,7 @@ App::Application::Application()
 
 void App::Application::run()
 {
-	// m_assetManager->getShadManager()->doHotReloads(true, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
+	 m_assetManager->getShadManager()->doHotReloads(true, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
 
     while(!glfwWindowShouldClose(m_window))
     {
@@ -463,7 +460,7 @@ void App::Application::run()
 		}
 		
 		// shader hot loading
-		if (false) //m_assetManager->getShadManager()->hotReloadLoop<Core::OpenGlBackend::Shader>())
+		if (m_assetManager->getShadManager()->hotReloadLoop<Core::OpenGlBackend::Shader>())
 		{
 			if (m_shader->getID() == 0)
 				m_shader = m_assetManager->getShadManager()->getShader<Core::OpenGlBackend::Shader>("assets/shaders/vert.glsl");
@@ -496,7 +493,7 @@ void App::Application::run()
         glfwPollEvents();
     }
 
-	// m_assetManager->getShadManager()->doHotReloads(false, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
+	 m_assetManager->getShadManager()->doHotReloads(false, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
 }
 
 App::Application::~Application()

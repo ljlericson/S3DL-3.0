@@ -4,11 +4,11 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-// #include <GLFW/glfw3native.h>
+#include <GLFW/glfw3native.h>
 
 // windows specific (not usefull on mac)
-// #include <windows.h>
-// #include <commdlg.h> // For OPENFILENAME 
+ #include <windows.h>
+ #include <commdlg.h> // For OPENFILENAME 
 
 #include <glm/glm.hpp>
 
