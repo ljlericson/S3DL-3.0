@@ -33,18 +33,30 @@ namespace Core
 				 std::shared_ptr<Texture> emissive,
 				 std::shared_ptr<Texture> roughness);
 
-			~Mesh() override;
+			void addInstance(glm::mat4 mat);
+
+			void removeInstance(size_t pos);
+
+			glm::mat4& getInstance(size_t pos) const;
 
 			void draw(Shader* shader, Camera* camera) const;
 
 		public:
 			glm::vec3 m_pos;
+			glm::mat4 m_rot;
 
 		private:
 			struct Instance
 			{
-				Instance(glm::mat4 translation);
-				glm::mat4 mat;
+				// SSBO containing model matrices for THIS mesh's instances
+				inline static GLuint s_ssbo = 0;
+
+				Instance(const glm::mat4& mat);
+				~Instance() = default;
+
+				static void upload(const std::vector<std::unique_ptr<Instance>>& instances);
+
+				glm::mat4 m_mat;
 			};
 
 			GLsizei m_vertexCount, m_indexCount;
@@ -57,8 +69,8 @@ namespace Core
 			std::shared_ptr<Texture> m_emissive = nullptr;
 			std::shared_ptr<Texture> m_roughness = nullptr;
 
-			// instances
-			std::vector<std::unique_ptr<Instance>> m_instances;
+			// Unique ptr for controlled lifetime
+			//std::vector<std::unique_ptr<Instance>> m_instances;
 		};
 	}
 }

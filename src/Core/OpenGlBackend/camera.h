@@ -20,49 +20,27 @@ namespace Core
 {
     namespace OpenGlBackend
     {
-        // TODO: COMPLETELY REFACTOR CLASS
         class Camera
         {
         private:
-            // jump variables
-            bool jump;
-            bool m_focus;
-            int jumpTicks;
-            bool firstJump;
-            float yOriginal;
-            // mouse input
-            bool firstClick;
-            // movement
-            bool m_sprint;
             // opengl matrix math
-            glm::vec3 up;
-            glm::vec3 orientation;
-            glm::mat4 cam_mat;
+            std::pair<glm::vec3, glm::vec3> m_orientationAndUp;
+            glm::mat4 m_camMat;
             glm::mat4 m_view;
 
         public:
-            // use mutable values
             glm::vec3 pos;
-            bool grounded;
-            float speed;
-            float sens;
             float fov;
-            float gravity;
-
-            float shaderNoiseLevel = 0.04f;
-
 
             Camera(glm::vec3 pos);
 
-            void update_matrix(float fnear, float ffar);
+            void updateMatrix(float fnear, float ffar);
 
-            void matrix(Shader* shader, const char* uniform);
+            glm::mat4 getMatrix() const;
 
-            std::array<float, 6> getOrientation();
+            std::pair<glm::vec3, glm::vec3>& getOrientations();
 
             glm::mat4 getView() const;
-
-            void inputs(GLFWwindow* window, float heightData);
         };
     }
 }

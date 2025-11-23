@@ -49,6 +49,16 @@ namespace Core
 			}
 		}
 
+		size_t ModelManager::newInstance(const std::string& fpath, glm::mat4 model)
+		{
+			return m_models.at(fpath)->makeInstace(model);
+		}
+
+		glm::mat4& ModelManager::getInstanceModel(const std::string& fpath, size_t instaceId)
+		{
+			return m_models.at(fpath)->getInstanceModel(instaceId);
+		}
+
 		std::shared_ptr<OpenGlBackend::Model> ModelManager::getModel(const std::string& fpath)
 		{
 			if (m_models.contains(fpath))

@@ -24,11 +24,11 @@ namespace Core
 
         // vertData layout: [0] pos(3), [1] normal(3), [2] texcoords(2)
         Mesh::Mesh(std::vector<float>& vertData,
-                   std::vector<GLuint>& indiData,
-                   std::shared_ptr<Texture> diffuse,
-                   std::shared_ptr<Texture> metallic,
-                   std::shared_ptr<Texture> emissive,
-                   std::shared_ptr<Texture> roughness)
+            std::vector<GLuint>& indiData,
+            std::shared_ptr<Texture> diffuse,
+            std::shared_ptr<Texture> metallic,
+            std::shared_ptr<Texture> emissive,
+            std::shared_ptr<Texture> roughness)
 
             : m_pos(0.0f),
             m_vertexCount(GLsizei(vertData.size()) / 8),
@@ -50,29 +50,67 @@ namespace Core
             m_ebo.unbind();
         }
 
-        Mesh::~Mesh()
+        void Mesh::addInstance(glm::mat4 mat)
         {
-            
+            //m_instances.push_back(std::make_unique<Instance>(mat));
+        }
+
+        void Mesh::removeInstance(size_t pos)
+        {
+            //m_instances.erase(m_instances.begin() + pos);
+        }
+
+        glm::mat4& Mesh::getInstance(size_t pos) const
+        {
+            //return m_instances[pos]->m_mat;
+            return *const_cast<glm::mat4*>(&this->m_rot); // temp for compiler warning sake
+        }
+
+        Mesh::Instance::Instance(const glm::mat4& mat)
+            : m_mat(mat) {      }
+
+        void Mesh::Instance::upload(const std::vector<std::unique_ptr<Instance>>& instances)
+        {
+            if (s_ssbo == 0)
+                glGenBuffers(1, &s_ssbo);
+
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_ssbo);
+
+            if (instances.empty())
+            {
+                glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
+            }
+            else
+            {
+                // Write instance matrices contiguously
+                glBufferData(GL_SHADER_STORAGE_BUFFER,
+                    instances.size() * sizeof(glm::mat4),
+                    &instances[0]->m_mat,
+                    GL_DYNAMIC_DRAW);
+            }
+
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, s_ssbo);
         }
 
         void Mesh::draw(Shader* shader, Camera* camera) const
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, m_pos);
+            model *= m_rot;
 
-            float* camOrien = camera->getOrientation().data();
+            auto& [orientation, up] = camera->getOrientations();
 
             shader->use();
             shader->setUniform("model", model, Shader::UniformWarningType::giveWarning);
             shader->setUniform("uTime", (float)glfwGetTime(), Shader::UniformWarningType::doNotGiveWarning);
-            shader->setUniform("noiseStrength", camera->shaderNoiseLevel, Shader::UniformWarningType::doNotGiveWarning);
+            shader->setUniform("noiseStrength", 0.0f, Shader::UniformWarningType::doNotGiveWarning);
             shader->setUniform("lightPos", camera->pos, Shader::UniformWarningType::doNotGiveWarning);
             shader->setUniform("cameraPos", camera->pos, Shader::UniformWarningType::doNotGiveWarning);
-            shader->setUniform("cameraUp", glm::vec3(camOrien[3], camOrien[4], camOrien[5]), Shader::UniformWarningType::doNotGiveWarning);
-            shader->setUniform("cameraOrientation", glm::vec3(camOrien[0], camOrien[1], camOrien[2]), Shader::UniformWarningType::doNotGiveWarning);
-
-
-            camera->matrix(shader, "camMat");
+            shader->setUniform("cameraUp", up, Shader::UniformWarningType::doNotGiveWarning);
+            shader->setUniform("cameraOrientation", orientation, Shader::UniformWarningType::doNotGiveWarning);
+            
+            // !! camera matrix !!
+            shader->setUniform("camMat", camera->getMatrix(), OpenGlBackend::Shader::UniformWarningType::giveWarning);
 
             m_vao.bind();
             m_ebo.bind();
@@ -96,7 +134,18 @@ namespace Core
             if(m_metallic)
                 m_metallic->uniform(shader->getID(), "metallic");
 
-            glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
+
+            //// instanced meshes
+            //if (!m_instances.empty())
+            //{
+            //    Instance::upload(m_instances);              // SSBO
+            //    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Instance::s_ssbo);
+            //    shader->setUniform("useInstance", true, Shader::UniformWarningType::giveWarning);
+
+            //    glDrawElementsInstanced(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr,
+            //        static_cast<GLsizei>(m_instances.size()));
+            //}
 
             m_diffuse->unbind();
 
@@ -115,7 +164,5 @@ namespace Core
                 std::cout << "MESH::DRAW1: " << Util::getGlErrAfterCheck();
 
         }
-
-        //Mesh::Instance Mesh:
     }
 }

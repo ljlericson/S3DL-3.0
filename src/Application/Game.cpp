@@ -151,8 +151,6 @@ void App::Application::ImGuiPreRender()
 	if (scrOpen)
 	{
 		ImGui::ColorPicker3("Screen Color", glm::value_ptr(m_scrColor), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
-		ImGui::InputFloat("Noise Level Input", &m_camera->shaderNoiseLevel);
-		ImGui::SliderFloat("Noise Level", &m_camera->shaderNoiseLevel, 0.0f, 10.0f);
 	}
 
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 6.0f));
@@ -162,10 +160,9 @@ void App::Application::ImGuiPreRender()
 	if (movementOpen)
 	{
 		ImGui::BeginChild("Movement Settings");
-		ImGui::SliderFloat("Camera Speed", &m_camera->speed, 0.1f, 5.0f);
-		ImGui::InputFloat("Camera Speed Input", &m_camera->speed);
-		ImGui::SliderFloat("Camera Sens", &m_camera->sens, 0.1f, 3.0f);
-		ImGui::Checkbox("Camera Grounded", &m_camera->grounded);
+		ImGui::SliderFloat("Camera Speed", &m_speed, 0.1f, 5.0f);
+		ImGui::InputFloat("Camera Speed Input", &m_speed);
+		ImGui::SliderFloat("Camera Sens", &m_mouseSens, 0.1f, 3.0f);
 		if(ImGui::Button("Reset Camera"))
 		{
 			m_camera->pos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -194,9 +191,23 @@ void App::Application::ImGuiPreRender()
 				{
 					ImGui::InputFloat3((model->m_name.c_str() + std::string(" Pos Input")).c_str(), glm::value_ptr(model->m_pos));
 					ImGui::SliderFloat3((model->m_name.c_str() + std::string(" Pos Slider")).c_str(), glm::value_ptr(model->m_pos), -100.0f, 100.0f);
+					ImGui::SliderFloat3((model->m_name.c_str() + std::string(" Rotation Slider")).c_str(), glm::value_ptr(model->m_rot), 0, 360.0f);
 					if (ImGui::Button("Paste on camera"))
 					{
 						model->m_pos = m_camera->pos;
+					}
+				}
+				if (ImGui::CollapsingHeader(((model->m_name.c_str()) + std::string(" INSTANCING")).c_str()))
+				{
+					if (ImGui::Button("New Instace"))
+					{
+						glm::mat4 newMat = glm::mat4(1.0f);
+						newMat = glm::translate(newMat, glm::vec3(model->m_pos.x + 10.0f, model->m_pos.y, model->m_pos.z));
+						//newMat = glm::rotate(newMat, glm::radians(120), glm::vec3(0.0f, 1.0f, 0.0f));
+
+						m_modelInstaceIDs[model->m_name].push_back(
+							model->makeInstace(newMat)
+						);
 					}
 				}
 				if(ImGui::Button((std::string("Delete ") + model->m_name.c_str()).c_str()))
@@ -215,6 +226,7 @@ void App::Application::ImGuiPreRender()
 					m_assetManager->getTextureManager(), 
 					Util::getFpathFromSelectionWindow()
 				));
+			Console::ccout << "NEW MODEL: " << m_models.at(std::distance(m_models.begin(), m_models.end()) - 1)->m_name << std::endl;
 		}
 		ImGui::EndChild();
 	}
@@ -230,6 +242,8 @@ void App::Application::ImGuiPreRender()
 	// end of window
 	//ImGui::PopFont();
 	ImGui::End();
+
+	Console::cchat.draw();
 }
 
 void App::Application::ImGuiRender()
@@ -252,7 +266,9 @@ void App::Application::sampleFps()
 	case SampleType::control:
 		if (!m_sampling) 
 		{
-			std::cout << "\n--- CAPTURING CONTROL SAMPLE ---\n";
+			Console::ccout << "--------------------------------"
+				<< std::endl << "--- CAPTURING CONTROL SAMPLE ---"
+				<< std::endl << "--------------------------------" << std::endl;
 			m_fpsSampleTimer.reset();
 			lastSampleTime = 0.0f;
 			m_sampling = true;
@@ -271,11 +287,20 @@ void App::Application::sampleFps()
 				m_sampling = false;
 				m_sampleType = SampleType::test;
 				m_fpsSampleTimer.reset();
-				std::cout <<   "=== CONTROL SAMPLE COMPLETE  ===\n"
-					<< "MEAN: " << m_fpsControlSamle.getMean() << '\n'
-					<< "VAR : " << m_fpsControlSamle.getVar() << '\n';
+
+				auto [begin, end] = Console::cchat.getMessageIterators();
+				Console::cchat.removeLine(std::distance(begin, end) - 1);
+				// avoid broken iterators after likely re alloc
+				auto [begin2, end2] = Console::cchat.getMessageIterators();
+				Console::cchat.removeLine(std::distance(begin2, end2) - 1);
+
+				Console::ccout << "=== CONTROL SAMPLE COMPLETE  ===" << std::endl
+					<< "MEAN: " << m_fpsControlSamle.getMean() << std::endl
+					<< "VAR : " << m_fpsControlSamle.getVar() << std::endl 
+					<< "--------------------------------" << std::endl;
 			}
 		}
+
 		break;
 
 	case SampleType::test:
@@ -323,7 +348,7 @@ void App::Application::sampleFps()
 
 void App::Application::OpenGlPreRender()
 {
-	Util::updateWindowSize(m_window);
+	Util::updateWindowSize(m_window->getWinHndle());
 	//m_scrFBO->startPreRender();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(m_scrColor.x, m_scrColor.y, m_scrColor.z, 1.0f);
@@ -347,61 +372,115 @@ void App::Application::OpenGlPostRender()
 	//m_scrFBO->postRender();
 }
 
-App::Application::Application()
-	: m_scrColor{ 169.0f / 255.0f, 222.0f / 255.0f, 250.0f / 255.0f }
+void App::Application::inputs()
 {
-#ifdef __APPLE__
-	std::filesystem::path newDir = "/Users/linus/Desktop/S3DL-3.0/";
-	std::filesystem::current_path(newDir);
-#endif
+	float newSpeed = m_sprinting ? m_speed * 2.5f : m_speed;
+	
+	auto& [orientation, up] = m_camera->getOrientations();
 
-	if (glfwInit() != GLFW_TRUE)
+	m_window->pollEvents();
+
+	if (m_window->getKeyDown(GLFW_KEY_W))
 	{
-		const char* description;
-		int code = glfwGetError(&description);
-
-		std::cerr << "GLFW initialization failed, error code: " << code << "\n";
-		if (description)
-			std::cerr << "Error description: " << description << "\n";
-		else
-			std::cerr << "No error description available.\n";
+		m_camera->pos += newSpeed * orientation;
 	}
-	// provide glfw with relevent info
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// wanting to keep initialsation code explicit
-	m_window = glfwCreateWindow(1280, 720, "s3gl 3.0", NULL, NULL);
-	glfwMakeContextCurrent(m_window);
-	if (glfwGetCurrentContext() != m_window) 
+	if (m_window->getKeyDown(GLFW_KEY_A))
 	{
-		std::cerr << "OpenGL context is not current before ImGui device object creation.\n";
+		m_camera->pos += newSpeed * -glm::normalize(glm::cross(orientation, up));
 	}
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	if (m_window->getKeyDown(GLFW_KEY_S))
 	{
-		std::cerr << "GLEW failed to init, error: " << glGetError() << '\n';
+		m_camera->pos += newSpeed * -orientation;
+	}
+	if (m_window->getKeyDown(GLFW_KEY_D))
+	{
+		m_camera->pos += newSpeed * glm::normalize(glm::cross(orientation, up));
+	}
+	if (m_window->getKeyDown(GLFW_KEY_LEFT_SHIFT))
+	{
+		if (!m_sprinting)
+			m_sprinting = true;
+	}
+	if (!m_window->getKeyDown(GLFW_KEY_LEFT_SHIFT))
+	{
+		if (m_sprinting)
+			m_sprinting = false;
+	}
+	if (m_window->getKeyDown(GLFW_MOUSE_BUTTON_LEFT) && m_window->getKeyDown(GLFW_KEY_LEFT_CONTROL))
+	{
+		m_focus = true;
+	}
+	if (m_window->getKeyDown(GLFW_KEY_ESCAPE) && m_focus)
+	{
+		glfwSetInputMode(m_window->getWinHndle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		m_focus = false;
 	}
 
-	glEnable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);       // Enable face culling
-	glCullFace(GL_BACK);          // Don't draw back faces
-	glFrontFace(GL_CCW);          // Default winding is counter-clockwise
-	glViewport(0, 0, 1280, 720);
-	glfwSwapInterval(0);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	stbi_set_flip_vertically_on_load(true);
+	if (m_focus)
+	{
+		// Hides mouse cursor
 
+		// Prevents camera from jumping on the first click
+		if (m_firstMouseClick)
+		{
+			glfwSetInputMode(m_window->getWinHndle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			glfwSetCursorPos(m_window->getWinHndle(), (Util::width / 2.0), (Util::height / 2.0));
+			m_firstMouseClick = false;
+		}
+
+		// Stores the coordinates of the cursor
+		double mouseX;
+		double mouseY;
+		// Fetches the coordinates of the cursor
+		glfwGetCursorPos(m_window->getWinHndle(), &mouseX, &mouseY);
+
+		// Normalizes and shifts the coordinates of the cursor such that they begin in the middle of the screen
+		// and then "transforms" them into degrees 
+		float rotX = m_mouseSens * 5.0f * (float)(mouseY - (Util::height / 2)) / Util::height;
+		float rotY = m_mouseSens * 5.0f * (float)(mouseX - (Util::width / 2)) / Util::width;
+
+		// Calculates upcoming vertical change in the Orientation
+		glm::vec3 newOrientation = glm::rotate(orientation, glm::radians(-rotX), glm::normalize(glm::cross(orientation, up)));
+
+		// Decides whether or not the next vertical Orientation is legal or not
+		if (abs(glm::angle(newOrientation, up) - glm::radians(90.0f)) <= glm::radians(85.0f))
+		{
+			orientation = newOrientation;
+		}
+
+		// Rotates the Orientation left and right
+		orientation = glm::rotate(orientation, glm::radians(-rotY), up);
+
+		// Sets mouse cursor to the middle of the screen so that it doesn't end up roaming around
+		glfwSetCursorPos(m_window->getWinHndle(), (Util::width / 2), (Util::height / 2));
+	}
+	else if (m_window->getMouseClick(GLFW_MOUSE_BUTTON_LEFT))
+	{
+		// Unhides cursor since camera is not looking around anymore
+		glfwSetInputMode(m_window->getWinHndle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		// Makes sure the next time the camera looks around it doesn't jump
+		m_firstMouseClick = true;
+	}
+}
+
+App::Application::Application()
+	: 
+	m_scrColor{ 169.0f / 255.0f, 222.0f / 255.0f, 250.0f / 255.0f }, 
+	m_customFont(nullptr)
+{
+
+
+	State::initGLFW();
+	m_window = std::make_unique<State::Window>("s3glr 3.0", 1280, 720);
+	State::initGL();
 
 	// imgui init
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsLight();
-	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-	if (!ImGui_ImplOpenGL3_Init("#version 410")) 
+	ImGui_ImplGlfw_InitForOpenGL(m_window->getWinHndle(), true);
+	if (!ImGui_ImplOpenGL3_Init("#version 430")) 
 	{
 		std::cerr << "ImGui OpenGL3 backend failed to initialize.\n";
 		throw std::runtime_error("ImGui OpenGL3 backend failed to initialize.");
@@ -414,7 +493,7 @@ App::Application::Application()
 
 	m_camera = new Core::OpenGlBackend::Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 	m_camera->fov = 90.0f;
-	m_camera->update_matrix(0.1f, 10000.0f);
+	m_camera->updateMatrix(0.1f, 10000.0f);
 
 	m_skyBox = new Core::OpenGlBackend::CubeMap(
 		"assets/skybox/px.png",
@@ -444,14 +523,16 @@ App::Application::Application()
 
 void App::Application::run()
 {
-	 m_assetManager->getShadManager()->doHotReloads(true, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
+	m_assetManager->getShadManager()->doHotReloads(true, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
 
-    while(!glfwWindowShouldClose(m_window))
+	Console::ccout << "_Mars_Mass_ joined the game" << std::endl;
+
+    while(!glfwWindowShouldClose(m_window->getWinHndle()))
     {
-		m_camera->update_matrix(0.1f, 1000000.0f);
-		m_camera->inputs(m_window, 0);
+		m_camera->updateMatrix(0.1f, 1000000.0f);
 
-		m_listener->orientation = m_camera->getOrientation();
+		auto& [orientation, up] = m_camera->getOrientations();
+		m_listener->orientation = { orientation.x, orientation.y, orientation.z, up.x, up.y, up.z };
 		m_listener->pos = m_camera->pos;
 		m_listener->update();
 		if (m_source)
@@ -476,6 +557,9 @@ void App::Application::run()
 
 		Util::calcFps();
 
+		inputs();
+		//m_camera->pos.z -= 0.001f;
+
 		sampleFps();
 
 		OpenGlPreRender();
@@ -488,9 +572,7 @@ void App::Application::run()
 
 		ImGuiRender();
         // swap buffers 
-        glfwSwapBuffers(m_window);
-        // poll events
-        glfwPollEvents();
+		m_window->swapBuffers();
     }
 
 	 m_assetManager->getShadManager()->doHotReloads(false, Core::Manager::ShaderManager::HotLoading::runOnDifferentThread);
@@ -503,7 +585,8 @@ App::Application::~Application()
 	/*if (m_scrFBO)
 		delete m_scrFBO;*/
 
-	glfwTerminate();
+	State::terminate();
+	
 	ImGui_ImplGlfw_Shutdown();
 	ImGui_ImplOpenGL3_Shutdown();
 

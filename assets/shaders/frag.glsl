@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 in vec2 TexCoord;
 in vec3 Normal;
 
@@ -70,8 +70,7 @@ void main()
     // Final lighting multiplier
     float lighting = ambient + diff * (1.0 - ambient);
 
-    FragColor = vec4(noisyColor * lighting, 1.0f)
-    ;
+    FragColor = vec4(noisyColor * lighting, 1.0f);
     // FragColor = vec4(texture(diffuse, TexCoord).rgb * lighting, 1.0f);
 }
 

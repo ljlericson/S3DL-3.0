@@ -112,7 +112,7 @@ namespace Core
                 if (m_linked && m_init)
                 {
                     GLuint loc = glGetUniformLocation(m_id, name.c_str());
-                    if (loc != 0)
+                    if (loc != -1)
                         glUniform1i(loc, value);
                     else
                         std::cout << "WARNING: Could not find int uniform GLShader::setUniform\n";
@@ -133,7 +133,7 @@ namespace Core
                 if (m_linked && m_init)
                 {
                     GLuint loc = glGetUniformLocation(m_id, name.c_str());
-                    if (loc != 0)
+                    if (loc != -1)
                         glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
                     else
                         std::cout << "WARNING: Could not find mat4 uniform GLShader::setUniform\n";
@@ -154,7 +154,7 @@ namespace Core
                 if (m_linked && m_init)
                 {
                     GLuint loc = glGetUniformLocation(m_id, name.c_str());
-                    if (loc != 0)
+                    if (loc != -1)
                         glUniform1f(loc, value);
                     else
                         std::cout << "WARNING: Could not find float uniform GLShader::setUniform\n";
@@ -175,8 +175,29 @@ namespace Core
                 if (m_linked && m_init)
                 {
                     GLuint loc = glGetUniformLocation(m_id, name.c_str());
-                    if (loc != 0)
+                    if (loc != -1)
                         glUniform3f(loc, value.x, value.y, value.z);
+                    else
+                        std::cout << "WARNING: Could not find float uniform GLShader::setUniform\n";
+                }
+                break;
+            }
+        }
+
+        void Shader::setUniform(const std::string& name, bool value, UniformWarningType specification) const
+        {
+            switch (specification)
+            {
+            case Shader::UniformWarningType::doNotGiveWarning:
+                if (m_linked && m_init)
+                    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+                break;
+            case Shader::UniformWarningType::giveWarning:
+                if (m_linked && m_init)
+                {
+                    GLuint loc = glGetUniformLocation(m_id, name.c_str());
+                    if (loc != -1)
+                        glUniform1i(loc, value);
                     else
                         std::cout << "WARNING: Could not find float uniform GLShader::setUniform\n";
                 }

@@ -125,11 +125,48 @@ namespace Core
                 for (const auto& mesh : m_childMeshes)
                 {
                     if (m_pos != m_posBefore)
+                    {
                         mesh->m_pos += (this->m_pos - this->m_posBefore);
+                    }
+
+                    else if (m_rot != m_rotBefore)
+                    {
+                        mesh->m_rot = glm::mat4(1.0f);
+                        mesh->m_rot = glm::rotate(mesh->m_rot, glm::radians(m_rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
+                        mesh->m_rot = glm::rotate(mesh->m_rot, glm::radians(m_rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
+                        mesh->m_rot = glm::rotate(mesh->m_rot, glm::radians(m_rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+                    }
 
                     mesh->draw(shader, camera);
                 }
                 m_posBefore = m_pos;
+                m_rotBefore = m_rot;
+            }
+        }
+
+        size_t Model::makeInstace(const glm::mat4& model)
+        {
+            for (const auto& mesh : m_childMeshes)
+            {
+                mesh->addInstance(model);
+            }
+            ++m_numInstances;
+            return m_numInstances;
+        }
+
+        glm::mat4& Model::getInstanceModel(size_t pos)
+        {
+            // always the same model matrix across 
+            // all child meshes
+            return m_childMeshes[0]->getInstance(pos);
+        }
+
+        void Model::removeInstace(size_t instaceId)
+        {
+            --m_numInstances;
+            for (const auto& mesh : m_childMeshes)
+            {
+                mesh->removeInstance(instaceId);
             }
         }
 

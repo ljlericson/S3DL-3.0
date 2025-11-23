@@ -37,6 +37,8 @@ namespace Core
             void setUniform(const std::string& name, float value, UniformWarningType specification) const override;
 
             void setUniform(const std::string& name, glm::vec3 value, UniformWarningType specification) const override;
+
+            void setUniform(const std::string& name, bool value, UniformWarningType specification) const override;
     
             void reset() override;
 

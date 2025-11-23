@@ -31,6 +31,10 @@ namespace Core
 			// Uses async loading
 			std::shared_ptr<OpenGlBackend::Model> newModelOrGetModel(TextureManager* textureManager, const std::string& fpath);
 
+			size_t newInstance(const std::string& fpath, glm::mat4 model);
+
+			glm::mat4& getInstanceModel(const std::string& fpath, size_t instaceId);
+
 			std::shared_ptr<OpenGlBackend::Model> getModel(const std::string& fpath);
 
 			void loop();

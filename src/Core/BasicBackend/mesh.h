@@ -15,7 +15,7 @@ namespace Core
 		public:
 			virtual ~BasicMesh() = default;
 
-			void draw(BasicShader* shader, BasicCamera* camera) const;
+			//virtual void draw(BasicShader* shader, BasicCamera* camera) const = 0;
 		};
 	}
 } 

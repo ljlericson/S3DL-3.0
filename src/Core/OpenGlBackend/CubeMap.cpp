@@ -116,7 +116,8 @@ namespace Core::OpenGlBackend
 
 
 		shad->use();
-		cam->matrix(shad, "camMat");
+		/*shad->setUniform("camMat", cam->getMatrix(), OpenGlBackend::Shader::UniformWarningType::giveWarning);
+		shad->setUniform("camMat", cam->getMatrix(), OpenGlBackend::Shader::UniformWarningType::giveWarning);*/
 		glUniform1i(glGetUniformLocation(shad->getID(), "skybox"), 0);
 
 		//glm::vec3 camPos = cam->pos;

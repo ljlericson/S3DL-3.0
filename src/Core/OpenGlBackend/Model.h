@@ -5,6 +5,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -37,6 +38,12 @@ namespace Core
 
 			void Draw(Shader* shader, Camera* camera);
 
+			size_t makeInstace(const glm::mat4& model);
+
+			glm::mat4& getInstanceModel(size_t pos);
+
+			void removeInstace(size_t instanceId);
+
 			GLuint getNumTextures() const;
 
 			size_t getLocalID() const;
@@ -45,14 +52,18 @@ namespace Core
 		public:
 			std::string m_name;
 			glm::vec3 m_pos;
+			glm::vec3 m_rot;
+
 		private:
 			std::shared_ptr<Texture> loadTexture(aiMaterial* mat, const aiScene* model, size_t meshNum, aiTextureType texType, Manager::TextureManager::ReturnOnError specification);
 
 		private:
 			static inline size_t sm_numModels = 0;
+			size_t m_numInstances = 0;
 			size_t m_localID = 0;
 			// manages textures
 			glm::vec3 m_posBefore;
+			glm::vec3 m_rotBefore;
 			std::vector<std::unique_ptr<Mesh>> m_childMeshes;
 			// member reference pointer
 			Manager::TextureManager* m_textureManager; // NOT OWNED

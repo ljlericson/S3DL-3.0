@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;   // pass in world pos from vertex shader if available

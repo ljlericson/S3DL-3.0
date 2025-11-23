@@ -10,6 +10,8 @@
 #include <utility>
 // nGL libraries
 #define GLAD_GL_IMPLEMENTATION
+//#include <glm/glm.hpp>
+//#include <glm/gtc/matrix_transform.hpp> // For glm::rotate
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 // imgui
@@ -29,6 +31,12 @@
 #include "../Core/OpenGlBackend/Shader.h"
 
 #include "../Core/OpenGlBackend/CubeMap.h"
+
+#include "State/State.h"
+#include "State/Window.h"
+
+#include "Console/ChatStream.h"
+
 
 namespace Core::Manager
 {
@@ -59,10 +67,17 @@ namespace App
         void OpenGlPreRender();
         void OpenGlRender();
         void OpenGlPostRender();
+
+        void inputs();
         // fps sampling
         void sampleFps();
 
-        GLFWwindow* m_window;
+        std::unique_ptr<State::Window> m_window;
+        bool m_focus = false;
+        bool m_firstMouseClick = true;
+        bool m_sprinting = false;
+        float m_speed = 2.5f;
+        float m_mouseSens = 1.0f;
         ImFont* m_customFont;
 
         ljl::Stat::ContinuosSample m_fpsTestSamle;
@@ -83,6 +98,7 @@ namespace App
         std::shared_ptr<Core::OpenGlBackend::Shader> m_skyShad;
 
 		std::vector<std::shared_ptr<Core::OpenGlBackend::Model>> m_models;
+        std::unordered_map<std::string, std::vector<size_t>> m_modelInstaceIDs;
 
         Core::Audio::Listener* m_listener = nullptr;
         Core::Audio::Source* m_source = nullptr;
