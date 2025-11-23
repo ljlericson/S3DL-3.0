@@ -71,6 +71,7 @@ target_include_directories(s3glr PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${Stb_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Vender/Metal
+	Stat/include/
 )
 
 # Defines

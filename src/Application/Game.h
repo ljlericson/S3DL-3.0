@@ -18,10 +18,11 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+// ljl::Stat
+#include <ljl/Stat.hpp>
 // src files
 #include "../Utils/Utils.h"
 #include "../Utils/Timer.h"
-#include "../Vender/ljlStat/src/include/ljl/Stat.hpp"
 
 #include "../Core/Audio/Listener.h"
 #include "../Core/Audio/Source.h"

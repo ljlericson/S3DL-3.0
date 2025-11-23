@@ -1,9 +1,6 @@
 [submodule "vcpkg"]
 	path = vcpkg
 	url = https://github.com/microsoft/vcpkg
-[submodule "src/Vender/ljlStat"]
-	path = src/Vender/ljlStat
-	url = https://github.com/ljlericson/Stat
 [submodule "Stat"]
 	path = Stat
 	url = https://github.com/ljlericson/Stat
