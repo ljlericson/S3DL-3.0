@@ -12,6 +12,7 @@
       ]
     },
     "drlibs",
+    "llama-cpp",
     "openal-soft",
     "glm",
     "nlohmann-json",

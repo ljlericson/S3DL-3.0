@@ -81,7 +81,7 @@ target_compile_definitions(s3glr PRIVATE
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # --- Link libraries ---
-    message("----INFO: BUILDING FOR WINDOWS----")
+    message("|[S3GLR]|---- CONFIGURED FOR WINDOWS ----|[S3GLR]|")
     target_link_libraries(s3glr PRIVATE
         glad::glad
         imgui::imgui
